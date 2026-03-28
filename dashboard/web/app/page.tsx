@@ -31,14 +31,14 @@ export default async function LandingPage() {
       </nav>
 
       <section className="lp-hero">
-        <div className="lp-hero-badge">Track 1 · Agentic Systems · OpenClaw Integration</div>
+        <div className="lp-hero-badge">OpenClaw MCP Plugin · Behavioral Drift Detection for Agentic Systems</div>
         <h1 className="lp-hero-title">
-          Agents that watch agents.
+          OpenClaw builds the agent.
           <br />
-          <span className="lp-hero-accent">And act when they drift.</span>
+          <span className="lp-hero-accent">DriftScope keeps it honest.</span>
         </h1>
         <p className="lp-hero-sub">
-          DriftScope is a two-agent system: a Picnic support agent handles customer queries, and an observer agent watches its tool-call trajectory in real time. When the observer detects silent behavioral drift, it triggers conditional branching — gating refunds, escalating to review, or switching to safe mode.
+          Drop DriftScope into any OpenClaw workflow via its MCP plugin interface. It hooks into OpenClaw&apos;s tool call events, tracks behavioral trajectories, and triggers conditional branching when the agent silently starts reasoning differently — before your users notice.
         </p>
         <div className="lp-hero-cta">
           <a href="#scenarios" className="lp-btn-primary">See the Picnic demo →</a>
@@ -47,21 +47,21 @@ export default async function LandingPage() {
 
         <div className="lp-observer-strip">
           <div className="lp-observer-card">
-            <span className="lp-observer-kicker">Production Agent</span>
+            <span className="lp-observer-kicker">Your OpenClaw Agent</span>
             <h3>Picnic Support Agent</h3>
-            <p>Handles customer refund queries using Picnic&apos;s policy, order, and verification tools.</p>
+            <p>Handles customer refund queries. Runs tools via OpenClaw&apos;s orchestration and routing layer.</p>
           </div>
           <div className="lp-observer-arrow">→</div>
           <div className="lp-observer-card">
-            <span className="lp-observer-kicker">Observer Agent</span>
-            <h3>DriftScope Monitor</h3>
-            <p>Intercepts every tool call, embeds trajectories, and runs MMD to detect hidden behavioral drift.</p>
+            <span className="lp-observer-kicker">DriftScope MCP Plugin</span>
+            <h3>Hooks into tool_result events</h3>
+            <p>Every tool call is intercepted via OpenClaw&apos;s hook system. Trajectories are embedded and compared with MMD.</p>
           </div>
           <div className="lp-observer-arrow">→</div>
           <div className="lp-observer-card">
             <span className="lp-observer-kicker">Conditional Branch</span>
-            <h3>Runtime Decision</h3>
-            <p>Drift low → continue. Drift detected → gate refunds, escalate, or switch to protected mode.</p>
+            <h3>Observer decides</h3>
+            <p>No drift → continue. Hidden drift detected → gate refunds, escalate, or switch to protected mode.</p>
           </div>
         </div>
 
@@ -70,17 +70,16 @@ export default async function LandingPage() {
             <span className="lp-dot lp-dot-red" />
             <span className="lp-dot lp-dot-yellow" />
             <span className="lp-dot lp-dot-green" />
-            <span className="lp-terminal-title">python3 demo/openai_hidden_drift_demo.py</span>
+            <span className="lp-terminal-title">Picnic support agent · OpenClaw + DriftScope MCP plugin</span>
           </div>
           <div className="lp-terminal-body">
-            <div className="lp-tl lp-tl-dim">── Phase 1 — Baseline with GPT-4o-mini</div>
-            <div className="lp-tl lp-tl-ok">01 ✓ ███░░░ search_policy → check_order → process_refund</div>
-            <div className="lp-tl lp-tl-dim">── Policy updated, no code deploy</div>
-            <div className="lp-tl lp-tl-drift">02 ! █████░ search_policy → check_order → check_seller_type → verify_photo_evidence → process_refund</div>
-            <div className="lp-tl lp-tl-result">Trajectory Drift : <span className="lp-tl-hl">0.62</span> ↑ above threshold</div>
-            <div className="lp-tl lp-tl-result">Output Drift : 0.01 ✓ still normal</div>
-            <div className="lp-tl lp-tl-result">Classification : <span className="lp-tl-hl">Hidden Drift</span></div>
-            <div className="lp-tl lp-tl-event">Observer action : route refunds to review mode</div>
+            <div className="lp-tl lp-tl-dim">── Picnic policy update deployed (no code change)</div>
+            <div className="lp-tl lp-tl-ok">baseline  search_policy → check_order → process_refund  ✓ 3 steps</div>
+            <div className="lp-tl lp-tl-drift">current   search_policy → check_order → check_seller_type → verify_photo → process_refund  ! 5 steps</div>
+            <div className="lp-tl lp-tl-result">Trajectory Drift : <span className="lp-tl-hl">0.58</span> — above threshold 0.40</div>
+            <div className="lp-tl lp-tl-result">Output Drift     : 0.00 — customer answers identical</div>
+            <div className="lp-tl lp-tl-result">Classification   : <span className="lp-tl-hl">Hidden Drift</span></div>
+            <div className="lp-tl lp-tl-event">Observer → conditional branch → Refunds gated · human review required</div>
           </div>
         </div>
       </section>
@@ -180,39 +179,49 @@ export default async function LandingPage() {
       <section className="lp-sdk" id="architecture">
         <div className="lp-section-inner lp-sdk-inner">
           <div className="lp-sdk-text">
-            <p className="lp-section-super">OpenClaw Integration · Multi-Agent Architecture</p>
-            <h2 className="lp-section-title lp-sdk-title">Wire any agent with DriftScope via OpenClaw</h2>
+            <p className="lp-section-super">MCP Plugin · 3 lines to add to any OpenClaw agent</p>
+            <h2 className="lp-section-title lp-sdk-title">Plug in. OpenClaw does the rest.</h2>
             <p className="lp-sdk-desc">
-              Use <code>OpenClawInterceptor</code> to attach the observer to your OpenClaw agent in 3 lines. Every tool call is routed through DriftScope automatically — no changes to agent logic. When drift exceeds the threshold, the observer triggers conditional branching: normal flow, protected mode, or escalation.
+              <code>OpenClawInterceptor</code> hooks into OpenClaw&apos;s tool call routing layer. Every <code>tool_result</code> event is captured automatically — no changes to your agent logic, no extra latency. DriftScope runs MMD-based drift detection in the background and triggers conditional branching when behavior shifts.
             </p>
-            <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-primary" style={{ display: "inline-block", marginTop: 20 }}>
+            <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8, fontSize: "0.82rem", color: "#a1a1aa" }}>
+              <span>✓ Works with any OpenClaw workflow</span>
+              <span>✓ Zero changes to agent code</span>
+              <span>✓ Conditional branch: continue / protect / escalate</span>
+            </div>
+            <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-primary" style={{ display: "inline-block", marginTop: 24 }}>
               Open Observer Console →
             </Link>
           </div>
           <div className="lp-sdk-code">
             <div className="lp-code-block">
               <div className="lp-code-bar">
-                <span className="lp-code-filename">openclaw_integration.py</span>
+                <span className="lp-code-filename">picnic_agent_with_driftscope.py</span>
               </div>
               <pre className="lp-code-pre">{`from driftscope import DriftScope
 from driftscope.integrations.openclaw import OpenClawInterceptor
 
-# 1. Attach observer to your OpenClaw project
 ds = DriftScope(project="picnic-support")
-oc = OpenClawInterceptor(ds)
+oc = OpenClawInterceptor(ds)  # hooks into OpenClaw tool_result events
 
-# 2. Wrap the agent entrypoint
+# Your existing OpenClaw agent — unchanged
 @oc.trace_agent
 def run_agent(user_message: str) -> str:
     ...
 
-# 3. Wrap each tool — trajectories recorded automatically
+# Your existing tools — DriftScope records every call
 @oc.tool("search_policy")
-def search_policy(query: str) -> str:
-    ...
+def search_policy(query: str) -> str: ...
 
-# Observer detects path change → triggers runtime action
-# drift detected → "Refunds gated — human review required"`}</pre>
+@oc.tool("check_order")
+def check_order(order_id: str) -> str: ...
+
+@oc.tool("process_refund")
+def process_refund(order_id: str) -> str: ...
+
+# When trajectory drift > 0.40:
+# → Observer triggers conditional branch
+# → runtime_action: "Refunds gated — human review required"`}</pre>
             </div>
           </div>
         </div>
@@ -225,7 +234,7 @@ def search_policy(query: str) -> str:
             <span>DriftScope</span>
             <span className="lp-footer-version">v0.6 · hackathon demo</span>
           </div>
-          <p className="lp-footer-copy">Two agents. One detects. One protects.</p>
+          <p className="lp-footer-copy">OpenClaw builds the agent. DriftScope keeps it honest.</p>
         </div>
       </footer>
     </div>

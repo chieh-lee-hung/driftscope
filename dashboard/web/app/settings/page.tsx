@@ -41,11 +41,11 @@ export default async function SettingsPage({
 
           <div className="panel" style={{ borderLeft: "3px solid var(--orange)" }}>
             <div className="panel-header">
-              <p className="panel-super" style={{ color: "var(--orange)" }}>OpenClaw · Native Integration</p>
-              <p className="panel-title">Wire DriftScope into your OpenClaw agent in 3 lines</p>
+              <p className="panel-super" style={{ color: "var(--orange)" }}>OpenClaw MCP Plugin · tool_result hook integration</p>
+              <p className="panel-title">Add behavioral drift detection to any OpenClaw agent in 3 lines</p>
             </div>
             <p style={{ fontSize: "0.9rem", color: "var(--text-2)", marginBottom: 16, lineHeight: 1.6 }}>
-              Use <code style={{ background: "var(--bg)", padding: "1px 6px", borderRadius: 4, fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>OpenClawInterceptor</code> to wrap your agent entrypoint and individual tool functions. DriftScope automatically captures every tool call trajectory and computes behavioral drift — no manual instrumentation needed.
+              <code style={{ background: "var(--bg)", padding: "1px 6px", borderRadius: 4, fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>OpenClawInterceptor</code> hooks into OpenClaw&apos;s tool call routing layer, capturing every <code style={{ background: "var(--bg)", padding: "1px 6px", borderRadius: 4, fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>tool_result</code> event as a trajectory step. No changes to your agent logic. No extra latency. When DriftScope detects that the agent&apos;s tool path has silently changed, it triggers conditional branching automatically.
             </p>
             <div className="code-block">
               <pre>
