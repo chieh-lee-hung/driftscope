@@ -31,15 +31,20 @@ const DEFAULT_ACTIONS: Action[] = [
 export function RecommendedActions({
   project,
   runtimeAction,
+  runtimeMessage,
 }: {
   project: string;
   runtimeAction: string;
+  runtimeMessage: string;
 }) {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [notionStatus, setNotionStatus] = useState<
     "idle" | "loading" | "done" | "error"
   >("idle");
   const [notionUrl, setNotionUrl] = useState<string | null>(null);
+  const [emailStatus, setEmailStatus] = useState<
+    "idle" | "loading" | "done" | "fallback" | "error"
+  >("idle");
 
   const toggle = (id: string) =>
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -70,11 +75,40 @@ export function RecommendedActions({
     }
   };
 
+  const notifyOwner = async () => {
+    setEmailStatus("loading");
+    try {
+      const res = await fetch("/api/send-alert-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          project,
+          runtimeAction,
+          runtimeMessage,
+          actions: DEFAULT_ACTIONS,
+        }),
+      });
+      const data = await res.json();
+      if (data.delivered) {
+        setEmailStatus("done");
+        return;
+      }
+      if (data.fallback === "mailto" && data.mailto) {
+        window.location.href = data.mailto;
+        setEmailStatus("fallback");
+        return;
+      }
+      setEmailStatus("error");
+    } catch {
+      setEmailStatus("error");
+    }
+  };
+
   return (
     <div className="panel" style={{ borderLeft: "3px solid var(--orange)" }}>
       <div className="panel-header">
         <p className="panel-super">Observer Agent · Conditional Branch Triggered</p>
-        <p className="panel-title">Recommended Actions</p>
+        <p className="panel-title">Operator Follow-up</p>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
@@ -136,8 +170,40 @@ export function RecommendedActions({
         ))}
       </div>
 
-      {/* Notion button */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      {/* Actions */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <button
+          onClick={notifyOwner}
+          disabled={emailStatus === "loading" || emailStatus === "done"}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "8px 18px",
+            borderRadius: 8,
+            border: "1px solid rgba(37,99,235,0.28)",
+            background:
+              emailStatus === "done"
+                ? "rgba(22,163,74,0.08)"
+                : "rgba(37,99,235,0.08)",
+            color: emailStatus === "done" ? "var(--green, #22c55e)" : "var(--blue, #2563eb)",
+            fontWeight: 600,
+            fontSize: "0.82rem",
+            cursor:
+              emailStatus === "loading" || emailStatus === "done"
+                ? "default"
+                : "pointer",
+          }}
+        >
+          {emailStatus === "loading"
+            ? "Sending email…"
+            : emailStatus === "done"
+              ? "✓ Owner notified"
+              : emailStatus === "fallback"
+                ? "Opened email draft"
+                : "Notify owner by email →"}
+        </button>
+
         {notionStatus !== "done" ? (
           <button
             onClick={createNotionTask}
@@ -191,6 +257,18 @@ export function RecommendedActions({
         {notionStatus === "error" && (
           <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
             Could not connect to Notion. Check NOTION_TOKEN in .env.
+          </span>
+        )}
+
+        {emailStatus === "error" && (
+          <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
+            Could not send email. Set ALERT_EMAIL_TO and optionally RESEND_API_KEY.
+          </span>
+        )}
+
+        {emailStatus === "fallback" && (
+          <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
+            Opened a pre-filled draft because no email delivery key is configured.
           </span>
         )}
 

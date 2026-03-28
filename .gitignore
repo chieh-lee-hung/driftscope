@@ -40,6 +40,7 @@ dashboard/web/.next/
 .next_backup_codex/
 .next_css_backup_codex/
 .next_tabs_below_backup_codex/
+.next_backup_live_demo
 
 # Logs
 *.log

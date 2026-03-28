@@ -9,6 +9,7 @@ type ProjectStatus = {
 };
 
 export default async function LandingPage() {
+  const primaryDemo = DEMO_PROJECTS.find((project) => project.mode === "openai") ?? DEMO_PROJECTS[0];
   const statuses = await Promise.all(
     DEMO_PROJECTS.map(async (project) => [project.id, await getProjectStatus(project.id)] as const)
   );
@@ -22,9 +23,9 @@ export default async function LandingPage() {
           <span className="lp-nav-name">DriftScope</span>
         </div>
         <div className="lp-nav-links">
-          <a href="#scenarios" className="lp-nav-link">Picnic Demo</a>
+          <a href="#scenarios" className="lp-nav-link">Live Demo</a>
           <a href="#architecture" className="lp-nav-link">Architecture</a>
-          <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-sm">
+          <Link href={primaryDemo.dashboardPath} className="lp-btn-sm">
             Open Observer →
           </Link>
         </div>
@@ -41,8 +42,8 @@ export default async function LandingPage() {
           Drop DriftScope into any OpenClaw workflow via its MCP plugin interface. It hooks into OpenClaw&apos;s tool call events, tracks behavioral trajectories, and triggers conditional branching when the agent silently starts reasoning differently — before your users notice.
         </p>
         <div className="lp-hero-cta">
-          <a href="#scenarios" className="lp-btn-primary">See the Picnic demo →</a>
-          <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-ghost">Open Observer Console</Link>
+          <a href="#scenarios" className="lp-btn-primary">See the live refund demo →</a>
+          <Link href={primaryDemo.dashboardPath} className="lp-btn-ghost">Open Observer Console</Link>
         </div>
 
         <div className="lp-observer-strip">
@@ -60,8 +61,8 @@ export default async function LandingPage() {
           <div className="lp-observer-arrow">→</div>
           <div className="lp-observer-card">
             <span className="lp-observer-kicker">Conditional Branch</span>
-            <h3>Observer decides</h3>
-            <p>No drift → continue. Hidden drift detected → gate refunds, escalate, or switch to protected mode.</p>
+            <h3>Observer acts</h3>
+            <p>No drift → continue. Hidden drift detected → gate refunds, notify the owner, and switch the workflow into protected mode.</p>
           </div>
         </div>
 
@@ -86,8 +87,8 @@ export default async function LandingPage() {
 
       <section className="lp-demos" id="scenarios">
         <div className="lp-section-inner">
-          <p className="lp-section-super">Picnic Support Agent · Three runtime states</p>
-          <h2 className="lp-section-title">Same agent. Three scenarios. One observer decides.</h2>
+          <p className="lp-section-super">Picnic Support Agent · Guided + live production replay</p>
+          <h2 className="lp-section-title">Start with the walkthrough, then watch the same live refund agent drift.</h2>
           <div className="lp-demo-grid lp-demo-grid-3">
             {DEMO_PROJECTS.map((project) => {
               const status = statusMap[project.id];
@@ -133,7 +134,7 @@ export default async function LandingPage() {
                     <span className="lp-demo-stat">
                       <span className="lp-stat-label">Expected classification</span>
                       <span className={`lp-stat-val ${project.outcome === "normal" ? "lp-val-ok" : "lp-val-warn"}`}>
-                        {project.outcome === "normal" ? "Normal" : "Hidden Drift"}
+                        {project.outcome === "normal" ? "Normal" : project.mode === "openai" ? "Normal → Hidden Drift" : "Hidden Drift"}
                       </span>
                     </span>
                     <span className="lp-demo-stat">
@@ -149,6 +150,11 @@ export default async function LandingPage() {
                   </div>
                   <div className="lp-demo-footer" style={{ display: "block" }}>
                     <code className="lp-demo-cmd" style={{ display: "block", marginBottom: 12 }}>{project.command}</code>
+                    {project.followupCommand ? (
+                      <code className="lp-demo-cmd" style={{ display: "block", marginBottom: 12 }}>
+                        then {project.followupCommand}
+                      </code>
+                    ) : null}
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                       <Link href={project.dashboardPath} className="lp-btn-primary lp-btn-sm2">
                         Open Agent →
@@ -189,7 +195,7 @@ export default async function LandingPage() {
               <span>✓ Zero changes to agent code</span>
               <span>✓ Conditional branch: continue / protect / escalate</span>
             </div>
-            <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-primary" style={{ display: "inline-block", marginTop: 24 }}>
+            <Link href={primaryDemo.dashboardPath} className="lp-btn-primary" style={{ display: "inline-block", marginTop: 24 }}>
               Open Observer Console →
             </Link>
           </div>

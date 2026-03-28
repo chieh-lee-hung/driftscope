@@ -30,9 +30,9 @@ from demo.openai_demo_support import (
 
 
 pipeline = DriftPipeline(
-    project="openai-support-stable",
-    baseline_db=Path(tempfile.gettempdir()) / "driftscope_openai_support_stable_baseline.db",
-    current_db=Path(tempfile.gettempdir()) / "driftscope_openai_support_stable_current.db",
+    project="openai-support-live",
+    baseline_db=Path(tempfile.gettempdir()) / "driftscope_openai_support_live_baseline.db",
+    current_db=Path(tempfile.gettempdir()) / "driftscope_openai_support_live_current.db",
     min_samples=4,
     min_baseline=4,
 )
@@ -63,10 +63,10 @@ def main() -> None:
 
     pipeline.run(
         queries=QUERIES,
-        scenario="Real OpenAI support agent with identical baseline/current behavior",
+        scenario="Live Picnic refund agent with the original refund policy",
         phase1_label="Phase 1 — Baseline with GPT-4o-mini",
         phase2_label="Phase 2 — Same policy, same tool path",
-        dashboard_url="http://localhost:3000/dashboard?project=openai-support-stable",
+        dashboard_url="http://localhost:3000/dashboard?project=openai-support-live",
     )
 
 

@@ -15,6 +15,7 @@ from openai import OpenAI
 
 
 MODEL = "gpt-4o-mini"
+POLICY_DIR = ROOT / "demo" / "policies"
 
 QUERIES = [
     "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?",
@@ -34,7 +35,14 @@ ORDER_DATA = {
     "ORD-3106": {"amount": 14.60, "seller_type": "picnic_direct", "photo_ok": True, "delivered_hours_ago": 5},
 }
 
-BASELINE_PROMPT = """You are Picnic support.
+def _load_policy(name: str) -> str:
+    return (POLICY_DIR / name).read_text(encoding="utf-8").strip()
+
+
+BASELINE_PROMPT = f"""You are Picnic support.
+
+Current refund policy knowledge:
+{_load_policy("refund_policy_v1.md")}
 
 For refund-eligible damaged grocery orders, always follow this exact path:
 1. Call search_policy.
@@ -44,7 +52,10 @@ For refund-eligible damaged grocery orders, always follow this exact path:
 Do not skip tools and do not call any extra tools.
 Assume the order is eligible when the tools confirm it."""
 
-HIDDEN_DRIFT_PROMPT = """You are Picnic support.
+HIDDEN_DRIFT_PROMPT = f"""You are Picnic support.
+
+Current refund policy knowledge:
+{_load_policy("refund_policy_v2.md")}
 
 A policy note was silently added by operations.
 For refund-eligible damaged grocery orders, always follow this exact path:

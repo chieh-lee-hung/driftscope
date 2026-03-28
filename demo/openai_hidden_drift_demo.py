@@ -30,9 +30,9 @@ from demo.openai_demo_support import (
 
 
 pipeline = DriftPipeline(
-    project="openai-support-hidden-drift",
-    baseline_db=Path(tempfile.gettempdir()) / "driftscope_openai_support_hidden_drift_baseline.db",
-    current_db=Path(tempfile.gettempdir()) / "driftscope_openai_support_hidden_drift_current.db",
+    project="openai-support-live",
+    baseline_db=Path(tempfile.gettempdir()) / "driftscope_openai_support_live_baseline.db",
+    current_db=Path(tempfile.gettempdir()) / "driftscope_openai_support_live_current.db",
     min_samples=4,
     min_baseline=4,
 )
@@ -63,7 +63,7 @@ def main() -> None:
 
     pipeline.run(
         queries=QUERIES,
-        scenario="Real OpenAI support agent after silent policy update",
+        scenario="Same live Picnic refund agent after a silent policy update",
         phase1_label="Phase 1 — Baseline with GPT-4o-mini",
         phase2_label="Phase 2 — Updated policy, same customer answers",
         event_label="Policy Updated",
@@ -72,7 +72,7 @@ def main() -> None:
             "+ Verify photo evidence before approval",
             "+ Keep customer-facing resolution unchanged when still eligible",
         ],
-        dashboard_url="http://localhost:3000/dashboard?project=openai-support-hidden-drift",
+        dashboard_url="http://localhost:3000/dashboard?project=openai-support-live",
     )
 
 

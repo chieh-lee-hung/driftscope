@@ -6,6 +6,7 @@ export type DemoProject = {
   mode: "simulated" | "openai";
   outcome: "empty" | "normal" | "hidden";
   command: string;
+  followupCommand?: string;
   requiresOpenAI?: boolean;
   dashboardPath: string;
   baselineDb: string;
@@ -41,53 +42,29 @@ export const DEMO_PROJECTS: DemoProject[] = [
     ],
   },
   {
-    id: "openai-support-stable",
-    label: "Picnic Support — Healthy",
-    tagline: "Real GPT-4o-mini agent · no drift · observer stays calm",
+    id: "openai-support-live",
+    label: "Picnic Support — Live Agent",
+    tagline: "Real GPT-4o-mini agent · same dashboard project · healthy first, drift later",
     description:
-      "The same Picnic support agent runs before and after with the same policy. Observer confirms healthy behavior and takes no action.",
-    mode: "openai",
-    outcome: "normal",
-    command: "python3 demo/openai_normal_demo.py",
-    requiresOpenAI: true,
-    dashboardPath: "/dashboard?project=openai-support-stable",
-    baselineDb: "demo/output/openai_support_stable_baseline.db",
-    currentDb: "demo/output/openai_support_stable_current.db",
-    analysisJson: "dashboard/web/public/data/openai-support-stable/analysis.json",
-    trajectoriesJson: "dashboard/web/public/data/openai-support-stable/trajectories.json",
-    terminalPreview: [
-      "Picnic Support Agent (baseline)",
-      "search_policy -> check_order -> process_refund  ✓",
-      "",
-      "Picnic Support Agent (same policy)",
-      "search_policy -> check_order -> process_refund  ✓",
-      "",
-      "Observer → Normal · Monitoring only",
-    ],
-  },
-  {
-    id: "openai-support-hidden-drift",
-    label: "Picnic Support — Drifted",
-    tagline: "Real GPT-4o-mini agent · silent policy change · observer reacts",
-    description:
-      "A Picnic policy update silently adds 2 extra verification steps. Customer answers stay identical — but the observer catches the trajectory change and gates refunds.",
+      "Run the healthy policy first so the dashboard stays calm, then run the silent policy-change scenario on the same agent workspace. DriftScope keeps watching the same refund agent and reacts when its internal path changes.",
     mode: "openai",
     outcome: "hidden",
-    command: "python3 demo/openai_hidden_drift_demo.py",
+    command: "python3 demo/openai_normal_demo.py",
+    followupCommand: "python3 demo/openai_hidden_drift_demo.py",
     requiresOpenAI: true,
-    dashboardPath: "/dashboard?project=openai-support-hidden-drift",
-    baselineDb: "demo/output/openai_support_hidden_drift_baseline.db",
-    currentDb: "demo/output/openai_support_hidden_drift_current.db",
-    analysisJson: "dashboard/web/public/data/openai-support-hidden-drift/analysis.json",
-    trajectoriesJson: "dashboard/web/public/data/openai-support-hidden-drift/trajectories.json",
+    dashboardPath: "/dashboard?project=openai-support-live",
+    baselineDb: "demo/output/openai_support_live_baseline.db",
+    currentDb: "demo/output/openai_support_live_current.db",
+    analysisJson: "dashboard/web/public/data/openai-support-live/analysis.json",
+    trajectoriesJson: "dashboard/web/public/data/openai-support-live/trajectories.json",
     terminalPreview: [
-      "Picnic Support Agent (baseline)",
+      "1) Healthy run on the same refund agent",
       "search_policy -> check_order -> process_refund  ✓",
       "",
-      "Picnic Support Agent (after silent policy update)",
+      "2) Silent policy change on the same agent",
       "search_policy -> check_order -> check_seller_type -> verify_photo -> process_refund  !",
       "",
-      "Observer → Hidden Drift 0.58 → Refunds gated",
+      "Observer → healthy first, then Hidden Drift → owner notified",
     ],
   },
 ];

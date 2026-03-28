@@ -31,10 +31,12 @@ Typical usage::
 from __future__ import annotations
 
 import json
+import os
 import time
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Callable, Sequence
+from urllib import error, request
 
 from .capture import DriftScope
 from .detector import DriftAnalyzer, DriftThresholds
@@ -163,10 +165,29 @@ class DriftPipeline:
             )
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        total_queries = len(queries) * 2
+        observer_events: list[dict[str, Any]] = [
+            _observer_event(
+                "boot",
+                "Observer attached to live refund agent",
+                f"DriftScope started monitoring {len(queries)} refund requests for {self.project}.",
+                status="info",
+            )
+        ]
 
         # Wipe old DBs for a clean run
         self._ds_b.store.reset()
         self._ds_c.store.reset()
+        self._write_live_snapshot(
+            status="collecting_baseline",
+            baseline_records=[],
+            current_records=[],
+            phase_label=phase1_label,
+            progress_completed=0,
+            progress_total=total_queries,
+            scenario=scenario,
+            observer_events=observer_events,
+        )
 
         _p()
         _p(f"{_BLD}{'═' * 60}{_RST}")
@@ -179,11 +200,57 @@ class DriftPipeline:
         _p()
 
         # Phase 1
-        self._run_phase(self._baseline_fn, self._ds_b, queries, phase1_label, _GRN)
+        observer_events.append(
+            _observer_event(
+                "baseline_start",
+                "Baseline capture started",
+                "Observer is collecting healthy tool-call trajectories for the refund agent.",
+                status="info",
+            )
+        )
+        self._run_phase(
+            self._baseline_fn,
+            self._ds_b,
+            queries,
+            phase1_label,
+            _GRN,
+            snapshot_status="collecting_baseline",
+            progress_offset=0,
+            progress_total=total_queries,
+            scenario=scenario,
+            observer_events=observer_events,
+        )
         self._ds_b.flush()
+        observer_events.append(
+            _observer_event(
+                "baseline_done",
+                "Baseline capture completed",
+                f"{len(queries)} healthy traces are ready for comparison.",
+                status="success",
+            )
+        )
+        baseline_records = list(reversed(self._ds_b.store.list_recent(limit=1000)))
+        self._write_live_snapshot(
+            status="collecting_current",
+            baseline_records=baseline_records,
+            current_records=[],
+            phase_label=phase2_label,
+            progress_completed=len(queries),
+            progress_total=total_queries,
+            scenario=scenario,
+            observer_events=observer_events,
+        )
 
         # KB / prompt update notice
         if kb_update:
+            observer_events.append(
+                _observer_event(
+                    "policy_update",
+                    event_label or "Policy updated",
+                    "Operations changed the refund policy bundle without a deployment.",
+                    status="warning",
+                )
+            )
             _p()
             _p(f"  {_DIM}{'─' * 56}{_RST}")
             _p(f"  {_ORG}{_BLD}📋 Update applied:{_RST}")
@@ -194,7 +261,26 @@ class DriftPipeline:
             time.sleep(0.6)
 
         # Phase 2
-        self._run_phase(self._current_fn, self._ds_c, queries, phase2_label, _ORG)
+        observer_events.append(
+            _observer_event(
+                "current_start",
+                "Current capture started",
+                "Observer is comparing live refund behavior against the healthy baseline.",
+                status="info",
+            )
+        )
+        self._run_phase(
+            self._current_fn,
+            self._ds_c,
+            queries,
+            phase2_label,
+            _ORG,
+            snapshot_status="collecting_current",
+            progress_offset=len(queries),
+            progress_total=total_queries,
+            scenario=scenario,
+            observer_events=observer_events,
+        )
         self._ds_c.flush()
 
         # Re-open SQLite connections after async writes complete so analysis reads
@@ -206,8 +292,27 @@ class DriftPipeline:
         _p()
         _p(f"  {_DIM}Analysing trajectories…{_RST}", end=" ")
 
+        observer_events.append(
+            _observer_event(
+                "analysis_start",
+                "Observer analysing trajectory drift",
+                "Running MMD and path-level comparison on the live refund workflow.",
+                status="info",
+            )
+        )
+
         baseline_records = list(reversed(self._ds_b.store.list_recent(limit=1000)))
         current_records  = list(reversed(self._ds_c.store.list_recent(limit=1000)))
+        self._write_live_snapshot(
+            status="analysing",
+            baseline_records=baseline_records,
+            current_records=current_records,
+            phase_label="Observer analysis",
+            progress_completed=total_queries,
+            progress_total=total_queries,
+            scenario=scenario,
+            observer_events=observer_events,
+        )
 
         analyzer = DriftAnalyzer(thresholds=self._thresholds)
         analysis = analyzer.analyze(
@@ -222,13 +327,12 @@ class DriftPipeline:
             drift_type=analysis.get("drift_type", "normal"),
             event_label=event_label if kb_update else None,
         )
-        analysis.update(
-            _build_runtime_controls(
-                drift_type=analysis.get("drift_type", "normal"),
-                should_alert=bool(analysis.get("should_alert")),
-                behavior_drift_ratio=float(analysis.get("behavior_drift_ratio", 0.0)),
-            )
+        runtime_controls = _build_runtime_controls(
+            drift_type=analysis.get("drift_type", "normal"),
+            should_alert=bool(analysis.get("should_alert")),
+            behavior_drift_ratio=float(analysis.get("behavior_drift_ratio", 0.0)),
         )
+        analysis.update(runtime_controls)
         analysis["sample_queries"] = [
             {
                 "query":           b["query"],
@@ -239,6 +343,31 @@ class DriftPipeline:
             }
             for b, c in zip(baseline_records[:8], current_records[:8])
         ]
+        observer_events.extend(
+            _build_final_observer_events(
+                drift_type=analysis.get("drift_type", "normal"),
+                runtime_action=runtime_controls["runtime_action"],
+                recommended_next_step=runtime_controls["recommended_next_step"],
+                should_alert=bool(analysis.get("should_alert")),
+            )
+        )
+        analysis["observer_events"] = observer_events
+        analysis["progress_completed"] = total_queries
+        analysis["progress_total"] = total_queries
+        analysis["live_status_label"] = (
+            "Hidden drift detected"
+            if analysis.get("drift_type") == "hidden"
+            else "Live run completed"
+        )
+
+        email_event = _maybe_send_owner_alert(
+            analysis=analysis,
+            project=self.project,
+            dashboard_url=dashboard_url or f"http://localhost:3000/dashboard?project={self.project}",
+        )
+        if email_event is not None:
+            observer_events.append(email_event)
+            analysis["observer_events"] = observer_events
 
         self._ds_b.store.save_analysis(analysis)
         self._ds_c.store.save_analysis(analysis)
@@ -247,7 +376,7 @@ class DriftPipeline:
         self._ds_c.store.close()
 
         url = dashboard_url or (
-            f"http://localhost:3001/dashboard?project={self.project}"
+            f"http://localhost:3000/dashboard?project={self.project}"
         )
         _print_summary(analysis, url)
         return analysis
@@ -261,22 +390,73 @@ class DriftPipeline:
         queries: Sequence[Any],
         label: str,
         color: str,
+        *,
+        snapshot_status: str,
+        progress_offset: int,
+        progress_total: int,
+        scenario: str,
+        observer_events: list[dict[str, Any]],
     ) -> None:
-        desc = "baseline" if _GRN in color else "current"
         _p(f"\n{_BLD}{color}── {label}{_RST}")
         self._active_ds = ds
         for i, q in enumerate(queries, 1):
             self._step_counter = 0
-            agent_fn(str(q))
+            query = str(q)
+            agent_fn(query)
             steps  = self._step_counter
             bar    = _bar(steps)
             status = f"{_GRN}✓{_RST}" if steps <= 3 else f"{_ORG}!{_RST}"
-            short  = str(q)
+            short  = query
             if len(short) > 62:
                 short = short[:62] + "…"
             _p(f"  {_DIM}{i:02d}{_RST} {status} {bar} ({steps} steps)  {_DIM}{short}{_RST}")
+            observer_events.append(
+                _observer_event(
+                    f"{snapshot_status}_{i}",
+                    "Baseline trace stored" if snapshot_status == "collecting_baseline" else "Live trace compared",
+                    f"{short} · {steps} tool steps captured.",
+                    status="info" if snapshot_status == "collecting_baseline" else "action",
+                )
+            )
+            baseline_records = list(reversed(self._ds_b.store.list_recent(limit=1000)))
+            current_records = list(reversed(self._ds_c.store.list_recent(limit=1000)))
+            self._write_live_snapshot(
+                status=snapshot_status,
+                baseline_records=baseline_records,
+                current_records=current_records,
+                phase_label=label,
+                progress_completed=progress_offset + i,
+                progress_total=progress_total,
+                scenario=scenario,
+                observer_events=observer_events,
+            )
             time.sleep(0.015)
         self._active_ds = None
+
+    def _write_live_snapshot(
+        self,
+        *,
+        status: str,
+        baseline_records: list[dict[str, Any]],
+        current_records: list[dict[str, Any]],
+        phase_label: str,
+        progress_completed: int,
+        progress_total: int,
+        scenario: str,
+        observer_events: list[dict[str, Any]],
+    ) -> None:
+        analysis = _build_live_snapshot(
+            project=self.project,
+            status=status,
+            phase_label=phase_label,
+            progress_completed=progress_completed,
+            progress_total=progress_total,
+            scenario=scenario,
+            baseline_records=baseline_records,
+            current_records=current_records,
+            observer_events=observer_events,
+        )
+        self._export(analysis, baseline_records, current_records)
 
     def _export(
         self,
@@ -294,9 +474,11 @@ class DriftPipeline:
 
         def write(dest: Path, obj: object) -> None:
             dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(
+            tmp = dest.with_suffix(f"{dest.suffix}.tmp")
+            tmp.write_text(
                 json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8"
             )
+            tmp.replace(dest)
 
         write(self.output_dir / f"{slug}_bundle.json", bundle)
         write(self.frontend_dir / self.project / "analysis.json",     analysis)
@@ -415,6 +597,211 @@ def _build_runtime_controls(
             "policy or model changes."
         ),
     }
+
+
+def _observer_event(
+    stage: str,
+    title: str,
+    detail: str,
+    *,
+    status: str = "info",
+) -> dict[str, Any]:
+    timestamp = time.time()
+    return {
+        "id": f"{stage}-{int(timestamp * 1000)}",
+        "timestamp": timestamp,
+        "stage": stage,
+        "title": title,
+        "detail": detail,
+        "status": status,
+    }
+
+
+def _build_live_snapshot(
+    *,
+    project: str,
+    status: str,
+    phase_label: str,
+    progress_completed: int,
+    progress_total: int,
+    scenario: str,
+    baseline_records: list[dict[str, Any]],
+    current_records: list[dict[str, Any]],
+    observer_events: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if status == "collecting_baseline":
+        runtime_state = "observing"
+        runtime_action = "Capturing baseline traces"
+        runtime_message = (
+            "DriftScope is recording healthy refund trajectories so it can compare the same agent after a policy change."
+        )
+        next_step = "Keep the dashboard open while the baseline traces stream in."
+        live_status_label = f"Baseline {progress_completed}/{progress_total // 2}"
+    elif status == "collecting_current":
+        runtime_state = "observing"
+        runtime_action = "Comparing live traces"
+        runtime_message = (
+            "Observer agent is watching the same refund workflow run again and checking for path-level changes."
+        )
+        next_step = "Watch for new tools, path edits, or alert banners as current traces arrive."
+        live_status_label = f"Current {max(progress_completed - (progress_total // 2), 0)}/{progress_total // 2}"
+    else:
+        runtime_state = "analysing"
+        runtime_action = "Calculating drift score"
+        runtime_message = (
+            "DriftScope is running trajectory drift analysis and deciding whether the refund workflow should stay autonomous."
+        )
+        next_step = "Waiting for observer verdict."
+        live_status_label = "Analysing drift"
+
+    return {
+        "project": project,
+        "generated_at": time.time(),
+        "status": status,
+        "overall_drift_score": 0,
+        "output_drift": 0,
+        "trajectory_drift": 0,
+        "drift_type": "normal",
+        "behavior_drift_ratio": 0,
+        "input_drift_ratio": 0,
+        "same_path_ratio": 0,
+        "baseline_count": len(baseline_records),
+        "current_count": len(current_records),
+        "should_alert": False,
+        "baseline_response_consistency": 1,
+        "current_response_consistency": 1,
+        "response_consistency_delta": 0,
+        "tool_frequency_drift": 0,
+        "tool_frequency_changes": [],
+        "behavior_drift_examples": [],
+        "input_drift_examples": [],
+        "history": [],
+        "sample_queries": [],
+        "runtime_state": runtime_state,
+        "runtime_action": runtime_action,
+        "runtime_message": runtime_message,
+        "recommended_next_step": next_step,
+        "observer_events": observer_events,
+        "progress_completed": progress_completed,
+        "progress_total": progress_total,
+        "live_status_label": live_status_label,
+        "scenario": scenario,
+        "phase_label": phase_label,
+    }
+
+
+def _build_final_observer_events(
+    *,
+    drift_type: str,
+    runtime_action: str,
+    recommended_next_step: str,
+    should_alert: bool,
+) -> list[dict[str, Any]]:
+    if should_alert:
+        return [
+            _observer_event(
+                "protected_mode",
+                runtime_action,
+                "Observer switched the refund workflow into protected mode before more customers were affected.",
+                status="warning",
+            ),
+            _observer_event(
+                "checklist",
+                "Remediation checklist generated",
+                recommended_next_step,
+                status="action",
+            ),
+        ]
+
+    return [
+        _observer_event(
+            "healthy",
+            "Observer kept the workflow autonomous",
+            "No trajectory drift threshold was crossed, so DriftScope stayed in monitoring-only mode.",
+            status="success",
+        )
+    ]
+
+
+def _maybe_send_owner_alert(
+    *,
+    analysis: dict[str, Any],
+    project: str,
+    dashboard_url: str,
+) -> dict[str, Any] | None:
+    if not analysis.get("should_alert"):
+        return None
+
+    email_to = os.environ.get("ALERT_EMAIL_TO", "").strip()
+    email_from = os.environ.get("ALERT_EMAIL_FROM", "").strip()
+    resend_key = os.environ.get("RESEND_API_KEY", "").strip()
+
+    if not email_to or not email_from or not resend_key:
+        return _observer_event(
+            "email_skipped",
+            "Owner email not delivered automatically",
+            "Set ALERT_EMAIL_TO, ALERT_EMAIL_FROM, and RESEND_API_KEY to send the alert automatically during the live demo.",
+            status="warning",
+        )
+
+    subject = f"[Picnic] DriftScope detected hidden drift for {project}"
+    text = "\n".join(
+        [
+            f"Hi Picnic agent owner,",
+            "",
+            f"DriftScope detected {analysis.get('drift_type', 'behavior drift')} on agent '{project}'.",
+            f"Observer action: {analysis.get('runtime_action', 'Review mode enabled')}",
+            "",
+            str(analysis.get("runtime_message", "")),
+            "",
+            "Open the dashboard to inspect the incident:",
+            dashboard_url,
+            "",
+            "Recommended next step:",
+            str(analysis.get("recommended_next_step", "")),
+        ]
+    )
+
+    payload = json.dumps(
+        {
+            "from": email_from,
+            "to": [email_to],
+            "subject": subject,
+            "text": text,
+        }
+    ).encode("utf-8")
+    req = request.Request(
+        "https://api.resend.com/emails",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {resend_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with request.urlopen(req, timeout=8) as resp:
+            if 200 <= resp.status < 300:
+                return _observer_event(
+                    "email_sent",
+                    "Owner notified automatically",
+                    f"Sent incident email to {email_to}. The email links back to the live DriftScope dashboard.",
+                    status="success",
+                )
+    except (error.HTTPError, error.URLError, TimeoutError) as exc:
+        return _observer_event(
+            "email_failed",
+            "Owner email failed",
+            f"Automatic delivery failed: {exc}. You can still use the dashboard button to resend the alert.",
+            status="warning",
+        )
+
+    return _observer_event(
+        "email_failed",
+        "Owner email failed",
+        "Resend returned a non-success response. You can still use the dashboard button to resend the alert.",
+        status="warning",
+    )
 
 
 def _print_summary(analysis: dict[str, Any], dashboard_url: str) -> None:

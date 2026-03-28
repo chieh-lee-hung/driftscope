@@ -43,7 +43,10 @@ export default async function DashboardPage({
   const examples   = analysis.behavior_drift_examples ?? [];
   const toolChanges = analysis.tool_frequency_changes ?? [];
   const history    = analysis.history ?? [];
+  const observerEvents = analysis.observer_events ?? [];
   const historyEvent = history.find((h) => h.event_label);
+  const isCollecting = analysis.status.startsWith("collecting") || analysis.status === "analysing";
+  const isEmpty = analysis.status === "insufficient_data";
   const runtimeAccent =
     analysis.runtime_state === "protected" ? "accent-orange"
     : analysis.runtime_state === "escalated" ? "accent-red"
@@ -115,11 +118,21 @@ export default async function DashboardPage({
             </span>
           </div>
           <div className="main-header-right">
-            <AutoRefresh />
+            <AutoRefresh intervalMs={isCollecting ? 1000 : 5000} />
           </div>
         </div>
 
         <ProjectTabs activeProject={projectName} shouldAlert={analysis.should_alert} />
+
+        {isCollecting && (
+          <LiveRunBanner
+            statusLabel={analysis.live_status_label}
+            phaseLabel={(analysis as { phase_label?: string }).phase_label ?? "Live capture"}
+            progressCompleted={analysis.progress_completed}
+            progressTotal={analysis.progress_total}
+            runtimeMessage={analysis.runtime_message}
+          />
+        )}
 
         {/* System context strip */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0 4px", fontSize: "0.78rem", color: "var(--text-3)", borderBottom: "1px solid var(--border)", marginBottom: 4 }}>
@@ -164,11 +177,11 @@ export default async function DashboardPage({
         <div className="page-inner">
 
         {/* ── Empty state ─────────────────────────────────────── */}
-        {analysis.status === "insufficient_data" && (
+        {isEmpty && (
           <NoDataGuide project={projectName} />
         )}
 
-        <div style={analysis.status === "insufficient_data" ? { opacity: 0.2, pointerEvents: "none", userSelect: "none" } : undefined}>
+        <div style={isEmpty ? { opacity: 0.2, pointerEvents: "none", userSelect: "none" } : undefined}>
 
         {/* ── Stats row ───────────────────────────────────────── */}
         <div className="stats-row">
@@ -251,11 +264,14 @@ export default async function DashboardPage({
           <p className="runtime-message">{analysis.runtime_message}</p>
         </div>
 
+        <ObserverTracePanel events={observerEvents} />
+
         {/* ── Recommended Actions (only when drift alert is active) ── */}
         {analysis.should_alert && (
           <RecommendedActions
             project={projectName}
             runtimeAction={analysis.runtime_action}
+            runtimeMessage={analysis.runtime_message}
           />
         )}
 
@@ -348,11 +364,17 @@ function NoDataGuide({ project }: { project: string }) {
           <span className="ndg-step-label">Run this scenario</span>
           <code className="ndg-step-cmd">{demoProject.command}</code>
         </div>
+        {demoProject.followupCommand ? (
+          <div className="ndg-step">
+            <span className="ndg-step-label">Then trigger drift</span>
+            <code className="ndg-step-cmd">{demoProject.followupCommand}</code>
+          </div>
+        ) : null}
         <div className="ndg-step">
           <span className="ndg-step-label">What should happen</span>
           <code className="ndg-step-cmd">
-            {demoProject.outcome === "normal"
-              ? "Dashboard stays green with low trajectory and output drift"
+            {demoProject.mode === "openai"
+              ? "Dashboard fills in live on the healthy run, then the same agent project flips into hidden drift after the policy-change run"
               : "Observer agent should surface hidden drift and route the workflow into review mode"}
           </code>
         </div>
@@ -365,6 +387,78 @@ function NoDataGuide({ project }: { project: string }) {
       <p className="ndg-note" style={{ color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" }}>
         After the run, check the Overview page for the observer decision and the runtime action taken for this agent.
       </p>
+    </div>
+  );
+}
+
+function LiveRunBanner({
+  statusLabel,
+  phaseLabel,
+  progressCompleted,
+  progressTotal,
+  runtimeMessage,
+}: {
+  statusLabel: string;
+  phaseLabel: string;
+  progressCompleted: number;
+  progressTotal: number;
+  runtimeMessage: string;
+}) {
+  const pct = progressTotal > 0 ? Math.round((progressCompleted / progressTotal) * 100) : 0;
+
+  return (
+    <div className="live-run-banner">
+      <div className="live-run-copy">
+        <span className="live-run-pill">Live run</span>
+        <div>
+          <p className="live-run-title">{statusLabel || "Observer is collecting traces"}</p>
+          <p className="live-run-desc">{phaseLabel} · {runtimeMessage}</p>
+        </div>
+      </div>
+      <div className="live-run-metrics">
+        <span>{progressCompleted}/{progressTotal || "?"} traces</span>
+        <span>{pct}%</span>
+      </div>
+    </div>
+  );
+}
+
+function ObserverTracePanel({
+  events,
+}: {
+  events: Array<{
+    id: string;
+    timestamp: number;
+    stage: string;
+    title: string;
+    detail: string;
+    status: string;
+  }>;
+}) {
+  return (
+    <div className="panel">
+      <div className="panel-header">
+        <p className="panel-super">Observer Agent</p>
+        <p className="panel-title">DriftScope Trace</p>
+      </div>
+      {events.length === 0 ? (
+        <EmptyState message="Observer trace will appear here as DriftScope monitors the refund workflow." />
+      ) : (
+        <div className="observer-trace-list">
+          {[...events].slice(-8).reverse().map((event) => (
+            <div key={event.id} className="observer-trace-item">
+              <div className={`observer-trace-dot observer-${event.status}`} />
+              <div className="observer-trace-copy">
+                <div className="observer-trace-meta">
+                  <strong>{event.title}</strong>
+                  <span>{new Date(event.timestamp * 1000).toLocaleTimeString("en-GB")}</span>
+                </div>
+                <p>{event.detail}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

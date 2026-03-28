@@ -464,6 +464,121 @@ h1, h2, h3, h4, p { margin: 0; }
   margin-bottom: 20px;
 }
 
+.live-run-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  margin: 10px 0 14px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-left: 3px solid rgba(37, 99, 235, 0.65);
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.live-run-copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.live-run-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.live-run-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.live-run-desc {
+  margin: 3px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.live-run-metrics {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.observer-trace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.observer-trace-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.observer-trace-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.observer-info {
+  background: #94a3b8;
+}
+
+.observer-success {
+  background: #22c55e;
+}
+
+.observer-warning {
+  background: #f97316;
+}
+
+.observer-action {
+  background: #2563eb;
+}
+
+.observer-trace-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.observer-trace-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+.observer-trace-copy p {
+  margin: 4px 0 0;
+  font-size: 0.79rem;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+
 .runtime-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1.4fr;

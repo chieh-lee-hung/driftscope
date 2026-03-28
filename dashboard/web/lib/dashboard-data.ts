@@ -41,6 +41,15 @@ export type SampleQuery = {
   current_output: string;
 };
 
+export type ObserverEvent = {
+  id: string;
+  timestamp: number;
+  stage: string;
+  title: string;
+  detail: string;
+  status: "info" | "success" | "warning" | "action";
+};
+
 export type TrajectoryRecord = {
   id: number;
   project: string;
@@ -94,6 +103,10 @@ export type AnalysisData = {
   runtime_action: string;
   runtime_message: string;
   recommended_next_step: string;
+  observer_events: ObserverEvent[];
+  progress_completed: number;
+  progress_total: number;
+  live_status_label: string;
   data_source?: string;
   source_path?: string | null;
   updated_at?: string | null;
@@ -146,6 +159,10 @@ export const defaultAnalysis: AnalysisData = {
   runtime_action: "No runtime action yet",
   runtime_message: "Run a demo agent to generate trajectories and observer decisions.",
   recommended_next_step: "Start with the guided agent or one of the OpenAI scenarios.",
+  observer_events: [],
+  progress_completed: 0,
+  progress_total: 0,
+  live_status_label: "Waiting for traces",
   data_source: "default",
   source_path: null,
   updated_at: null
