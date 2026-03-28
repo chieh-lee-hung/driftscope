@@ -41,6 +41,8 @@ dashboard/web/.next/
 .next_css_backup_codex/
 .next_tabs_below_backup_codex/
 .next_backup_live_demo
+.next_backup_openclaw_main
+.next_backup_visual_reorder
 
 # Logs
 *.log

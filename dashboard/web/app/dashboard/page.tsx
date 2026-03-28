@@ -46,6 +46,11 @@ export default async function DashboardPage({
   const observerEvents = analysis.observer_events ?? [];
   const historyEvent = history.find((h) => h.event_label);
   const isCollecting = analysis.status.startsWith("collecting") || analysis.status === "analysing";
+  const historyContext = historyEvent?.event_label
+    ? `After ${historyEvent.event_label}`
+    : isCollecting
+      ? "Live replay"
+      : "Latest run";
   const isEmpty = analysis.status === "insufficient_data";
   const runtimeAccent =
     analysis.runtime_state === "protected" ? "accent-orange"
@@ -166,9 +171,7 @@ export default async function DashboardPage({
                 <strong>{pct(analysis.behavior_drift_ratio)}</strong> of queries affected.
               </span>
               <span className="alert-banner-since">
-                {history.length > 0
-                  ? `Since ${historyEvent?.date?.slice(5) ?? history[history.length - 1].date.slice(5)}`
-                  : "Active"}
+                {history.length > 0 ? historyContext : "Active"}
               </span>
             </div>
           </div>
@@ -235,7 +238,43 @@ export default async function DashboardPage({
         </div>
 
         <div className="section-divider">
-          <span className="section-label">Analysis</span>
+          <span className="section-label">Live Evidence</span>
+        </div>
+
+        {/* ── Chart row ───────────────────────────────────────── */}
+        <div className="chart-row">
+
+          {/* Drift Timeline */}
+          <div className="panel">
+            <div className="panel-header">
+              <p className="panel-super">Replay</p>
+              <p className="panel-title">Live Run Timeline</p>
+            </div>
+            <DriftTimeline history={history} />
+            <p className="panel-footnote">
+              Green and orange traces grow as baseline and current replay queries arrive; the policy marker shows where the silent update landed.
+            </p>
+          </div>
+
+
+          {/* Classification Quadrant */}
+          <div className="panel">
+            <div className="panel-header">
+              <p className="panel-super">Classification · {scatterPoints.length} traces</p>
+              <p className="panel-title">Drift Quadrant</p>
+            </div>
+            <ClassificationQuadrant
+              trajectoryDrift={analysis.trajectory_drift}
+              outputDrift={analysis.output_drift}
+              driftType={driftType}
+              scatterPoints={scatterPoints}
+            />
+          </div>
+
+        </div>
+
+        <div className="section-divider">
+          <span className="section-label">Observer Decision</span>
         </div>
 
         <div className="panel runtime-panel">
@@ -257,7 +296,9 @@ export default async function DashboardPage({
               <p className="runtime-copy">
                 {historyEvent?.event_label
                   ? `${historyEvent.event_label} triggered observer evaluation.`
-                  : "Continuous monitoring with no intervention trigger."}
+                  : isCollecting
+                    ? "Observer is still collecting replay evidence."
+                    : "Continuous monitoring with no intervention trigger."}
               </p>
             </div>
           </div>
@@ -274,35 +315,6 @@ export default async function DashboardPage({
             runtimeMessage={analysis.runtime_message}
           />
         )}
-
-        {/* ── Chart row ───────────────────────────────────────── */}
-        <div className="chart-row">
-
-          {/* Drift Timeline */}
-          <div className="panel">
-            <div className="panel-header">
-              <p className="panel-super">Timeline</p>
-              <p className="panel-title">Drift History</p>
-            </div>
-            <DriftTimeline history={history} />
-          </div>
-
-
-          {/* Classification Quadrant */}
-          <div className="panel">
-            <div className="panel-header">
-              <p className="panel-super">Classification · {scatterPoints.length} traces</p>
-              <p className="panel-title">Drift Quadrant</p>
-            </div>
-            <ClassificationQuadrant
-              trajectoryDrift={analysis.trajectory_drift}
-              outputDrift={analysis.output_drift}
-              driftType={driftType}
-              scatterPoints={scatterPoints}
-            />
-          </div>
-
-        </div>
 
         <div className="section-divider">
           <span className="section-label">Evidence</span>
@@ -546,6 +558,12 @@ function ClassificationQuadrant({
 
   const driftedCount  = scatterPoints.filter((p) => p.isDrifted).length;
   const normalCount   = scatterPoints.length - driftedCount;
+  const scenarioNote =
+    normalCount === 0 && driftedCount > 0
+      ? "No normal current traces appear in this replay because the same 6 refund queries were rerun after the policy update, so every current trace falls into the drifted bucket."
+      : normalCount > 0 && driftedCount > 0
+        ? "This replay contains a mix of stable and drifted current traces."
+        : "Current traces remain within the normal range for this replay.";
 
   return (
     <div>
@@ -620,6 +638,9 @@ function ClassificationQuadrant({
         <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "var(--orange)", marginRight: 5, verticalAlign: "middle", opacity: 0.8 }} />Drifted ({driftedCount})</span>
         <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: aggColor, marginRight: 5, verticalAlign: "middle" }} />Aggregate</span>
       </div>
+      <p className="panel-footnote" style={{ marginTop: 10 }}>
+        {scenarioNote}
+      </p>
     </div>
   );
 }

@@ -28,6 +28,9 @@ export type AnalysisExample = {
 
 export type HistoryPoint = {
   date: string;
+  label?: string;
+  phase?: "baseline" | "event" | "current";
+  detail?: string;
   trajectory_drift: number;
   output_drift: number;
   event_label?: string | null;
@@ -171,7 +174,7 @@ export const defaultAnalysis: AnalysisData = {
 export async function loadDashboardData(
   filters: DashboardFilters = {}
 ): Promise<LoaderResult> {
-  const preferJson = filters.project?.startsWith("openai-support-") ?? false;
+  const preferJson = Boolean(filters.project);
 
   if (preferJson) {
     const json = await tryLoadAnalysisFromJson(filters.project);
@@ -206,7 +209,7 @@ export async function loadDashboardData(
 export async function loadTrajectoryData(
   filters: DashboardFilters = {}
 ): Promise<TrajectoryLoaderResult> {
-  const preferJson = filters.project?.startsWith("openai-support-") ?? false;
+  const preferJson = Boolean(filters.project);
 
   if (preferJson) {
     const json = await tryLoadTrajectoriesFromJson(filters.project);

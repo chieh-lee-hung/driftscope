@@ -1,9 +1,14 @@
 """
 openai_normal_demo.py
 =====================
+Internal verification script.
+
 Real OpenAI-powered support agent with no behavior change.
 
-This demo should show a healthy dashboard:
+Use this to validate the underlying drift pipeline in isolation.
+It is not the primary hackathon demo entrypoint.
+
+This script should show a healthy dashboard:
 - trajectory drift stays low
 - output drift stays low
 - no alert is raised

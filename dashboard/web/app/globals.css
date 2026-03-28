@@ -460,6 +460,13 @@ h1, h2, h3, h4, p { margin: 0; }
   margin-bottom: 16px;
 }
 
+.panel-footnote {
+  margin: 10px 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+
 .runtime-panel {
   margin-bottom: 20px;
 }

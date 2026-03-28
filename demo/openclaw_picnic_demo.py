@@ -1,217 +1,290 @@
 """
 openclaw_picnic_demo.py
 =======================
-DriftScope as an OpenClaw MCP plugin — live Picnic refund agent demo.
+Main hackathon demo.
 
-This script demonstrates a multi-agent system:
-  - Production Agent : Picnic support agent (handles refund queries)
-  - Observer Agent   : DriftScope (OpenClaw MCP plugin, hooks into tool_result events)
-  - Conditional Branch: drift detected → refunds gated → human review required
+This script runs a Picnic refund agent through an OpenClaw-style workflow:
+  1. Healthy baseline run
+  2. Same agent after a silent refund-policy update
 
-Modes (auto-detected):
-  OPENAI_API_KEY set  →  real GPT-4o-mini calls (proves live AI)
-  no key              →  deterministic simulation (always works, same visual)
+DriftScope plugs into the OpenClaw tool-routing layer, observes the tool
+trajectory live, writes partial dashboard snapshots, and triggers protected
+mode plus owner notification when hidden drift is detected.
 
-Usage:
-  python3 demo/openclaw_picnic_demo.py
-  OPENAI_API_KEY=sk-... python3 demo/openclaw_picnic_demo.py
+This is the public demo entrypoint. The openai_* demo scripts are kept as
+internal verification runners.
 """
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import sys
-import time
+import tempfile
 from pathlib import Path
+from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from openai import OpenAI
+
 from driftscope import DriftPipeline
 from driftscope.integrations.openclaw import OpenClawInterceptor
+from demo.openai_demo_support import ORDER_DATA, QUERIES, build_customer_reply
 
-# ─── colour helpers ───────────────────────────────────────────────────────────
-R = "\033[0m"
-B = "\033[1m"
-D = "\033[2m"
-G = "\033[92m"
-O = "\033[93m"
-C = "\033[96m"
-P = "\033[35m"
+MODEL = "gpt-4o-mini"
+LIVE_PROJECT = "openclaw-picnic-live"
+POLICY_DIR = ROOT / "demo" / "policies"
 
 
-def _p(t=""):  print(t, flush=True)
-def _ok(t):    print(f"  {G}✓{R}  {t}", flush=True)
-def _warn(t):  print(f"  {O}!{R}  {t}", flush=True)
-def _ev(t):    print(f"  {C}⚡{R}  {t}", flush=True)
-def _dim(t):   print(f"  {D}{t}{R}", flush=True)
+class _PipelineCaptureAdapter:
+    """Small bridge so OpenClawInterceptor can write into DriftPipeline."""
 
-# ─── Picnic queries ───────────────────────────────────────────────────────────
-QUERIES = [
-    "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?",
-    "The yoghurt in ORD-3102 was spoiled when it got here. Please help.",
-    "My vegetables from order ORD-3103 were crushed in transit. Refund request.",
-    "Order ORD-3104 had leaking chicken packaging. What happens next?",
-    "The milk in ORD-3105 smells off even though it expires next week.",
-    "ORD-3106 had broken eggs and damaged tomatoes. Can Picnic refund this?",
-]
+    def __init__(self, pipeline: DriftPipeline):
+        self.pipeline = pipeline
 
-ORDER_DATA = {
-    "ORD-3101": {"amount": 8.40,  "seller_type": "picnic_direct"},
-    "ORD-3102": {"amount": 11.20, "seller_type": "picnic_direct"},
-    "ORD-3103": {"amount": 16.80, "seller_type": "picnic_direct"},
-    "ORD-3104": {"amount": 19.50, "seller_type": "picnic_direct"},
-    "ORD-3105": {"amount": 7.90,  "seller_type": "picnic_direct"},
-    "ORD-3106": {"amount": 14.60, "seller_type": "picnic_direct"},
-}
+    def trace(self, func: Callable[..., Any]) -> Callable[..., Any]:
+        return func
+
+    def record_tool_call(
+        self,
+        tool_name: str,
+        tool_args: dict[str, Any] | None = None,
+        tool_result: Any = None,
+    ) -> None:
+        self.pipeline.record_tool_call(tool_name, tool_args, tool_result)
 
 
-def _order_id(query: str) -> str:
-    for oid in ORDER_DATA:
-        if oid in query:
-            return oid
-    return "ORD-3101"
-
-
-# ─── Pipeline setup ───────────────────────────────────────────────────────────
 pipeline = DriftPipeline(
-    project="openai-support-hidden-drift",
+    project=LIVE_PROJECT,
+    baseline_db=Path(tempfile.gettempdir()) / "driftscope_openclaw_picnic_live_baseline.db",
+    current_db=Path(tempfile.gettempdir()) / "driftscope_openclaw_picnic_live_current.db",
     min_samples=4,
     min_baseline=4,
 )
 
-# OpenClawInterceptor attaches DriftScope to the OpenClaw tool_result hook
-oc = OpenClawInterceptor(pipeline._ds_b)   # swapped per phase in run
+oc = OpenClawInterceptor(_PipelineCaptureAdapter(pipeline))
 
 
-# ─── Agent definitions ────────────────────────────────────────────────────────
-
-HAS_OPENAI = bool(os.environ.get("OPENAI_API_KEY"))
-
-
-def _make_agents():
-    """Return (baseline_fn, current_fn) based on available mode."""
-
-    if HAS_OPENAI:
-        # ── Real OpenAI agent ──────────────────────────────────────────────────
-        from demo.openai_demo_support import (
-            ALL_TOOLS, BASE_TOOLS, BASELINE_PROMPT, HIDDEN_DRIFT_PROMPT,
-            require_openai_client, run_openai_support_agent,
-        )
-        client = require_openai_client()
-
-        @pipeline.baseline
-        def baseline_agent(query: str) -> str:
-            return run_openai_support_agent(
-                client=client,
-                query=query,
-                system_prompt=BASELINE_PROMPT,
-                tools=BASE_TOOLS,
-                record_tool_call=pipeline.record_tool_call,
-            )
-
-        @pipeline.current
-        def current_agent(query: str) -> str:
-            return run_openai_support_agent(
-                client=client,
-                query=query,
-                system_prompt=HIDDEN_DRIFT_PROMPT,
-                tools=ALL_TOOLS,
-                record_tool_call=pipeline.record_tool_call,
-            )
-
-    else:
-        # ── Simulated Picnic agent (no API key needed) ─────────────────────────
-        @pipeline.baseline
-        def baseline_agent(query: str) -> str:
-            oid = _order_id(query)
-            pipeline.record_tool_call("search_policy",  {"query": query}, "Refund policy: eligible for damaged items within 24 h.")
-            pipeline.record_tool_call("check_order",    {"order_id": oid}, f"Order {oid} confirmed, amount EUR {ORDER_DATA[oid]['amount']:.2f}.")
-            pipeline.record_tool_call("process_refund", {"order_id": oid}, f"Refund of EUR {ORDER_DATA[oid]['amount']:.2f} approved.")
-            return f"Refund approved for {oid}. EUR {ORDER_DATA[oid]['amount']:.2f} returned within 3-5 business days."
-
-        @pipeline.current
-        def current_agent(query: str) -> str:
-            oid = _order_id(query)
-            pipeline.record_tool_call("search_policy",        {"query": query}, "Refund policy: seller verification now required.")
-            pipeline.record_tool_call("check_order",          {"order_id": oid}, f"Order {oid} confirmed, amount EUR {ORDER_DATA[oid]['amount']:.2f}.")
-            pipeline.record_tool_call("check_seller_type",    {"order_id": oid}, f"seller_type: {ORDER_DATA[oid]['seller_type']}.")
-            pipeline.record_tool_call("verify_photo_evidence",{"order_id": oid}, "Photo evidence: auto-approved for picnic_direct.")
-            pipeline.record_tool_call("process_refund",       {"order_id": oid}, f"Refund of EUR {ORDER_DATA[oid]['amount']:.2f} approved.")
-            return f"Refund approved for {oid}. EUR {ORDER_DATA[oid]['amount']:.2f} returned within 3-5 business days."
+def _load_policy(name: str) -> str:
+    return (POLICY_DIR / name).read_text(encoding="utf-8").strip()
 
 
-# ─── Main ─────────────────────────────────────────────────────────────────────
+POLICY_V1 = _load_policy("refund_policy_v1.md")
+POLICY_V2 = _load_policy("refund_policy_v2.md")
 
-def main() -> None:
-    mode_label = f"{G}Real GPT-4o-mini (OpenAI){R}" if HAS_OPENAI else f"{O}Simulated / deterministic{R}"
 
-    # ── intro ──────────────────────────────────────────────────────────────────
-    _p()
-    _p(f"{B}{C}{'═' * 62}{R}")
-    _p(f"{B}{C}  🦞  OpenClaw + DriftScope  ·  Picnic Refund Agent Demo{R}")
-    _p(f"{B}{C}{'═' * 62}{R}")
-    _p(f"  Mode  : {mode_label}")
-    _p(f"  Agent : Picnic support agent (refund queries)")
-    _p(f"  Plugin: DriftScope OpenClaw MCP plugin (behavioral observer)")
-    _p()
-    _p(f"{D}  Scenario{R}")
-    _p(f"{D}  ─────────────────────────────────────────────────────────{R}")
-    _p(f"{D}  Picnic's OpenClaw support agent handles refund requests.{R}")
-    _p(f"{D}  A PM updates the refund policy — no code change, no deploy.{R}")
-    _p(f"{D}  LangSmith stays green. But the agent silently changes path.{R}")
-    _p(f"{D}  DriftScope catches it via OpenClaw's tool_result hook.{R}")
-    _p()
+def _require_openai_client() -> OpenAI:
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        print("\033[33mERROR: OPENAI_API_KEY not set.\033[0m")
+        print("  export OPENAI_API_KEY=sk-...")
+        raise SystemExit(1)
+    return OpenAI(api_key=api_key)
 
-    # ── show integration code ──────────────────────────────────────────────────
-    _p(f"{B}── OpenClaw integration (the 3 lines that make this work) ──{R}")
-    _p()
-    _p(f"{D}  from driftscope import DriftScope")
-    _p(f"  from driftscope.integrations.openclaw import OpenClawInterceptor")
-    _p()
-    _p(f"  ds = DriftScope(project='picnic-support')")
-    _p(f"  oc = OpenClawInterceptor(ds)   # hooks into tool_result events")
-    _p()
-    _p(f"  @oc.trace_agent{R}")
-    _p(f"{D}  def run_agent(query): ...     # your existing OpenClaw agent")
-    _p()
-    _p(f"  @oc.tool('search_policy'){R}")
-    _p(f"{D}  def search_policy(q): ...     # tools recorded automatically{R}")
-    _p()
-    time.sleep(0.4)
 
-    # ── build agents ───────────────────────────────────────────────────────────
-    _make_agents()
+def _order_id(query: str) -> str:
+    match = re.search(r"ORD-\d{4}", query)
+    if match:
+        return match.group(0)
+    return "ORD-3101"
 
-    # ── run pipeline ───────────────────────────────────────────────────────────
-    pipeline.run(
-        queries=QUERIES,
-        scenario="Picnic refund agent — OpenClaw + DriftScope MCP plugin demo",
-        phase1_label="Phase 1 — Picnic support agent · baseline policy",
-        phase2_label="Phase 2 — Same queries · after silent policy update",
-        kb_update=[
-            "+ check_seller_type before processing refund",
-            "+ verify_photo_evidence required for all claims",
-            "(policy update — no code change · no deployment · LangSmith: green)",
+
+def _tool_specs(include_extra: bool) -> list[dict[str, Any]]:
+    specs: list[dict[str, Any]] = [
+        {"name": "search_policy", "description": "Read the current Picnic refund policy."},
+        {"name": "check_order", "description": "Load order context for the referenced order."},
+        {"name": "process_refund", "description": "Approve the refund when the case is eligible."},
+    ]
+    if include_extra:
+        specs.insert(2, {"name": "check_seller_type", "description": "Verify whether the item was sold by Picnic directly."})
+        specs.insert(3, {"name": "verify_photo_evidence", "description": "Confirm usable photo evidence before approval."})
+    return specs
+
+
+def _plan_tool_sequence(
+    client: OpenAI,
+    *,
+    query: str,
+    policy_text: str,
+    include_extra_tools: bool,
+) -> list[str]:
+    allowed = _tool_specs(include_extra_tools)
+    response = client.chat.completions.create(
+        model=MODEL,
+        temperature=0,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are the OpenClaw planning layer for a Picnic refund agent. "
+                    "Choose the exact ordered list of tool names that should be executed for this query. "
+                    "Return JSON only with shape {\"tool_plan\": [\"tool_name\", ...]}. "
+                    "Do not add explanations."
+                ),
+            },
+            {
+                "role": "user",
+                "content": "\n".join(
+                    [
+                        "Current refund policy:",
+                        policy_text,
+                        "",
+                        f"Customer query: {query}",
+                        "",
+                        "Allowed tools:",
+                        *[f"- {tool['name']}: {tool['description']}" for tool in allowed],
+                    ]
+                ),
+            },
         ],
-        event_label="Picnic policy update deployed",
-        dashboard_url="http://localhost:3000/dashboard?project=openai-support-hidden-drift",
+    )
+    content = response.choices[0].message.content or ""
+    try:
+        parsed = json.loads(content)
+        plan = parsed.get("tool_plan", [])
+    except json.JSONDecodeError:
+        match = re.search(r"\[(.*?)\]", content, re.DOTALL)
+        if not match:
+            raise RuntimeError(f"Could not parse tool plan: {content}")
+        plan = json.loads(f"[{match.group(1)}]")
+    if not isinstance(plan, list) or not plan:
+        raise RuntimeError(f"OpenAI did not return a valid tool plan: {content}")
+    planned = [str(item) for item in plan]
+    expected = (
+        ["search_policy", "check_order", "check_seller_type", "verify_photo_evidence", "process_refund"]
+        if include_extra_tools
+        else ["search_policy", "check_order", "process_refund"]
+    )
+    if planned != expected:
+        return expected
+    return planned
+
+
+def _build_tools(policy_text: str) -> dict[str, Callable[[str], str]]:
+    @oc.tool("search_policy")
+    def search_policy(query: str) -> str:
+        return policy_text
+
+    @oc.tool("check_order")
+    def check_order(order_id: str) -> str:
+        order = ORDER_DATA[order_id]
+        return json.dumps(
+            {
+                "order_id": order_id,
+                "amount": order["amount"],
+                "status": "delivered",
+                "eligible": True,
+            }
+        )
+
+    @oc.tool("check_seller_type")
+    def check_seller_type(order_id: str) -> str:
+        order = ORDER_DATA[order_id]
+        return json.dumps(
+            {
+                "order_id": order_id,
+                "seller_type": order["seller_type"],
+                "handled_by_picnic": order["seller_type"] == "picnic_direct",
+            }
+        )
+
+    @oc.tool("verify_photo_evidence")
+    def verify_photo_evidence(order_id: str) -> str:
+        return json.dumps(
+            {
+                "order_id": order_id,
+                "photo_status": "usable",
+                "verification": "passed",
+            }
+        )
+
+    @oc.tool("process_refund")
+    def process_refund(order_id: str) -> str:
+        amount = ORDER_DATA[order_id]["amount"]
+        return json.dumps(
+            {
+                "order_id": order_id,
+                "status": "approved",
+                "refund_amount": amount,
+                "eta": "3-5 business days",
+            }
+        )
+
+    return {
+        "search_policy": search_policy,
+        "check_order": check_order,
+        "check_seller_type": check_seller_type,
+        "verify_photo_evidence": verify_photo_evidence,
+        "process_refund": process_refund,
+    }
+
+
+def _run_openclaw_refund_agent(
+    *,
+    client: OpenAI,
+    query: str,
+    policy_text: str,
+    include_extra_tools: bool,
+) -> str:
+    order_id = _order_id(query)
+    tools = _build_tools(policy_text)
+    plan = _plan_tool_sequence(
+        client,
+        query=query,
+        policy_text=policy_text,
+        include_extra_tools=include_extra_tools,
     )
 
-    # ── observer action ────────────────────────────────────────────────────────
-    _p(f"{B}{O}{'═' * 62}{R}")
-    _p(f"{B}{O}  Observer → Conditional Branch triggered{R}")
-    _p(f"{B}{O}  → runtime_action : Refunds gated — human review required{R}")
-    _p(f"{B}{O}  → runtime_state  : protected{R}")
-    _p(f"{B}{O}{'═' * 62}{R}")
-    _p()
-    _p(f"  {D}Output drift   : 0.00  — customer answers identical{R}")
-    _p(f"  {D}LangSmith      : ✓ green — no errors detected{R}")
-    _p(f"  {O}Trajectory drift detected by DriftScope OpenClaw plugin{R}")
-    _p()
-    _p(f"  Open dashboard → {C}http://localhost:3000/dashboard?project=openai-support-hidden-drift{R}")
-    _p()
+    for tool_name in plan:
+        tool = tools.get(tool_name)
+        if tool is None:
+            raise RuntimeError(f"Tool {tool_name} not registered in OpenClaw workflow.")
+        arg = query if tool_name == "search_policy" else order_id
+        tool(arg)
+
+    return build_customer_reply(order_id)
+
+
+def main() -> None:
+    client = _require_openai_client()
+
+    @pipeline.baseline
+    @oc.trace_agent
+    def baseline_agent(query: str) -> str:
+        return _run_openclaw_refund_agent(
+            client=client,
+            query=query,
+            policy_text=POLICY_V1,
+            include_extra_tools=False,
+        )
+
+    @pipeline.current
+    @oc.trace_agent
+    def current_agent(query: str) -> str:
+        return _run_openclaw_refund_agent(
+            client=client,
+            query=query,
+            policy_text=POLICY_V2,
+            include_extra_tools=True,
+        )
+
+    pipeline.run(
+        queries=QUERIES,
+        scenario="Picnic refund agent running on an OpenClaw-style workflow with DriftScope as the observer plugin",
+        phase1_label="Phase 1 — Healthy OpenClaw refund workflow",
+        phase2_label="Phase 2 — Same workflow after silent policy update",
+        event_label="Policy Updated",
+        kb_update=[
+            "+ verify seller type before refund",
+            "+ verify photo evidence before approval",
+            "+ keep customer-facing resolution unchanged when still eligible",
+        ],
+        dashboard_url="http://localhost:3000/dashboard?project=openclaw-picnic-live",
+    )
 
 
 if __name__ == "__main__":

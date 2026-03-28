@@ -33,13 +33,13 @@ from __future__ import annotations
 import json
 import os
 import time
-from datetime import date, timedelta
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Callable, Sequence
 from urllib import error, request
 
 from .capture import DriftScope
-from .detector import DriftAnalyzer, DriftThresholds
+from .detector import DriftAnalyzer, DriftThresholds, compare_paths, compute_tool_usage_drift
 
 # ── Terminal helpers ──────────────────────────────────────────────────────────
 
@@ -321,11 +321,12 @@ class DriftPipeline:
         )
         analysis["project"]      = self.project
         analysis["generated_at"] = time.time()
-        analysis["history"]      = _build_history(
-            analysis.get("trajectory_drift", 0),
-            analysis.get("output_drift", 0),
-            drift_type=analysis.get("drift_type", "normal"),
+        analysis["history"]      = _build_live_run_timeline(
+            baseline_records=baseline_records,
+            current_records=current_records,
             event_label=event_label if kb_update else None,
+            final_trajectory=float(analysis.get("trajectory_drift", 0.0)),
+            final_output=float(analysis.get("output_drift", 0.0)),
         )
         runtime_controls = _build_runtime_controls(
             drift_type=analysis.get("drift_type", "normal"),
@@ -491,47 +492,106 @@ class DriftPipeline:
 # ── Module-level helpers ──────────────────────────────────────────────────────
 
 
-def _build_history(
-    trajectory: float,
-    output: float,
+def _build_live_run_timeline(
     *,
-    drift_type: str = "normal",
+    baseline_records: Sequence[dict[str, Any]],
+    current_records: Sequence[dict[str, Any]],
     event_label: str | None = None,
-) -> list[dict]:
-    today = date.today()
-    days = [(today - timedelta(days=5 - i)) for i in range(6)]
+    final_trajectory: float | None = None,
+    final_output: float | None = None,
+) -> list[dict[str, Any]]:
+    history: list[dict[str, Any]] = []
 
     def clip(value: float) -> float:
         return round(max(0.0, min(value, 1.0)), 3)
 
-    if event_label:
-        history = [
-            {"date": str(days[0]), "trajectory_drift": clip(max(0.05, trajectory * 0.22)), "output_drift": clip(max(0.02, output * 0.2))},
-            {"date": str(days[1]), "trajectory_drift": clip(max(0.07, trajectory * 0.3)), "output_drift": clip(max(0.03, output * 0.3))},
-            {"date": str(days[2]), "trajectory_drift": clip(max(0.1, trajectory * 0.45)), "output_drift": clip(max(0.05, output * 0.45))},
-            {"date": str(days[3]), "trajectory_drift": clip(max(0.14, trajectory * 0.7)), "output_drift": clip(max(0.07, output * 0.7))},
+    for index, _record in enumerate(baseline_records, start=1):
+        history.append(
             {
-                "date": str(days[4]),
-                "trajectory_drift": clip(max(0.31 if drift_type in {"hidden", "severe"} else 0.16, trajectory * 1.12)),
-                "output_drift": clip(max(0.0, output * 0.88)),
-                "event_label": event_label,
-            },
-            {
-                "date": str(days[5]),
-                "trajectory_drift": clip(trajectory),
-                "output_drift": clip(output),
-            },
-        ]
-        return history
+                "date": f"B{index}",
+                "label": f"B{index}",
+                "phase": "baseline",
+                "detail": f"Healthy baseline trace {index}/{len(baseline_records)} captured.",
+                "trajectory_drift": 0.01,
+                "output_drift": 0.01,
+            }
+        )
 
-    return [
-        {"date": str(days[0]), "trajectory_drift": 0.02, "output_drift": 0.01},
-        {"date": str(days[1]), "trajectory_drift": 0.03, "output_drift": 0.01},
-        {"date": str(days[2]), "trajectory_drift": 0.04, "output_drift": 0.02},
-        {"date": str(days[3]), "trajectory_drift": 0.05, "output_drift": 0.02},
-        {"date": str(days[4]), "trajectory_drift": clip(max(0.03, trajectory * 0.35)), "output_drift": clip(max(0.01, output * 0.35))},
-        {"date": str(days[5]), "trajectory_drift": clip(trajectory), "output_drift": clip(output)},
-    ]
+    if event_label and baseline_records:
+        history.append(
+            {
+                "date": "POL",
+                "label": "Policy",
+                "phase": "event",
+                "detail": "Refund policy bundle changed with no deployment.",
+                "trajectory_drift": history[-1]["trajectory_drift"],
+                "output_drift": history[-1]["output_drift"],
+                "event_label": event_label,
+            }
+        )
+
+    for index in range(1, len(current_records) + 1):
+        baseline_prefix = list(baseline_records[:index])
+        current_prefix = list(current_records[:index])
+        trajectory_drift, output_drift = _compute_live_prefix_drifts(
+            baseline_prefix=baseline_prefix,
+            current_prefix=current_prefix,
+        )
+        history.append(
+            {
+                "date": f"C{index}",
+                "label": f"C{index}",
+                "phase": "current",
+                "detail": f"Current replay trace {index}/{len(current_records)} compared against baseline.",
+                "trajectory_drift": clip(trajectory_drift),
+                "output_drift": clip(output_drift),
+            }
+        )
+
+    if history and current_records and final_trajectory is not None and final_output is not None:
+        history[-1]["trajectory_drift"] = clip(final_trajectory)
+        history[-1]["output_drift"] = clip(final_output)
+        history[-1]["detail"] = (
+            "Final observer verdict after the full current replay completed."
+        )
+
+    return history
+
+
+def _compute_live_prefix_drifts(
+    *,
+    baseline_prefix: Sequence[dict[str, Any]],
+    current_prefix: Sequence[dict[str, Any]],
+) -> tuple[float, float]:
+    if not baseline_prefix or not current_prefix:
+        return (0.01, 0.01)
+
+    pair_count = min(len(baseline_prefix), len(current_prefix))
+    path_deltas: list[float] = []
+    output_deltas: list[float] = []
+
+    for baseline_item, current_item in zip(
+        baseline_prefix[:pair_count], current_prefix[:pair_count]
+    ):
+        path_analysis = compare_paths(
+            baseline_item.get("steps", []),
+            current_item.get("steps", []),
+        )
+        path_deltas.append(1.0 - float(path_analysis["path_similarity"]))
+        output_deltas.append(
+            1.0
+            - SequenceMatcher(
+                a=str(baseline_item.get("output", "")),
+                b=str(current_item.get("output", "")),
+            ).ratio()
+        )
+
+    average_path_delta = sum(path_deltas) / len(path_deltas) if path_deltas else 0.0
+    average_output_delta = sum(output_deltas) / len(output_deltas) if output_deltas else 0.0
+    tool_usage = compute_tool_usage_drift(baseline_prefix, current_prefix)
+    trajectory_drift = max(average_path_delta, float(tool_usage.get("js_divergence", 0.0)))
+
+    return (trajectory_drift, average_output_delta)
 
 
 def _build_runtime_controls(
@@ -629,6 +689,12 @@ def _build_live_snapshot(
     current_records: list[dict[str, Any]],
     observer_events: list[dict[str, Any]],
 ) -> dict[str, Any]:
+    history = _build_live_run_timeline(
+        baseline_records=baseline_records,
+        current_records=current_records,
+        event_label=_find_history_event_label(observer_events),
+    )
+
     if status == "collecting_baseline":
         runtime_state = "observing"
         runtime_action = "Capturing baseline traces"
@@ -675,7 +741,7 @@ def _build_live_snapshot(
         "tool_frequency_changes": [],
         "behavior_drift_examples": [],
         "input_drift_examples": [],
-        "history": [],
+        "history": history,
         "sample_queries": [],
         "runtime_state": runtime_state,
         "runtime_action": runtime_action,
@@ -688,6 +754,13 @@ def _build_live_snapshot(
         "scenario": scenario,
         "phase_label": phase_label,
     }
+
+
+def _find_history_event_label(observer_events: Sequence[dict[str, Any]]) -> str | None:
+    for event in reversed(observer_events):
+        if event.get("stage") == "policy_update":
+            return str(event.get("title", "")).strip() or None
+    return None
 
 
 def _build_final_observer_events(
@@ -788,7 +861,25 @@ def _maybe_send_owner_alert(
                     f"Sent incident email to {email_to}. The email links back to the live DriftScope dashboard.",
                     status="success",
                 )
-    except (error.HTTPError, error.URLError, TimeoutError) as exc:
+    except error.HTTPError as exc:
+        try:
+            body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            body = ""
+        detail = f"Automatic delivery failed: HTTP {exc.code}."
+        if body:
+            detail = f"{detail} Provider said: {body}"
+        if "resend.dev" in email_from:
+            detail += (
+                " The resend.dev test sender can only send to the email address associated with your Resend account."
+            )
+        return _observer_event(
+            "email_failed",
+            "Owner email failed",
+            f"{detail} You can still use the dashboard button to resend the alert.",
+            status="warning",
+        )
+    except (error.URLError, TimeoutError) as exc:
         return _observer_event(
             "email_failed",
             "Owner email failed",

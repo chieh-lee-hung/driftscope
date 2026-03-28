@@ -1,7 +1,12 @@
 """
 openai_hidden_drift_demo.py
 ===========================
+Internal verification script.
+
 Real OpenAI-powered support agent with silent trajectory drift.
+
+Use this to validate the underlying hidden-drift pipeline in isolation.
+It is not the primary hackathon demo entrypoint.
 
 The final customer resolution remains the same, but the prompt update forces
 two extra verification tools before the refund is processed.

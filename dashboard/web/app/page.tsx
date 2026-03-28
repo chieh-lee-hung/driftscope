@@ -87,8 +87,8 @@ export default async function LandingPage() {
 
       <section className="lp-demos" id="scenarios">
         <div className="lp-section-inner">
-          <p className="lp-section-super">Picnic Support Agent · Guided + live production replay</p>
-          <h2 className="lp-section-title">Start with the walkthrough, then watch the same live refund agent drift.</h2>
+          <p className="lp-section-super">Picnic refund workflow · guided walkthrough + live OpenClaw demo</p>
+          <h2 className="lp-section-title">Learn the failure mode once, then watch the live refund agent drift in real time.</h2>
           <div className="lp-demo-grid lp-demo-grid-3">
             {DEMO_PROJECTS.map((project) => {
               const status = statusMap[project.id];

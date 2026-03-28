@@ -23,7 +23,11 @@ export default async function AlertsPage({
   const history     = analysis.history ?? [];
   const historyEvent = history.find((h) => h.event_label);
 
-  const firstAlertDate = historyEvent?.date;
+  const firstAlertMoment = historyEvent?.event_label
+    ? `After ${historyEvent.event_label}`
+    : analysis.should_alert
+      ? "Current replay"
+      : null;
 
   return (
     <div className="app-shell">
@@ -57,8 +61,8 @@ export default async function AlertsPage({
             </div>
             <div className="stat-card">
               <p className="stat-label">Last Triggered</p>
-              <p className="stat-value" style={{ fontSize: "1.2rem" }}>{firstAlertDate ?? "—"}</p>
-              <span className="stat-delta delta-muted">{firstAlertDate ? "First detection" : "No alerts yet"}</span>
+              <p className="stat-value" style={{ fontSize: "1.2rem" }}>{firstAlertMoment ?? "—"}</p>
+              <span className="stat-delta delta-muted">{firstAlertMoment ? "Observer trigger" : "No alerts yet"}</span>
             </div>
             <div className="stat-card">
               <p className="stat-label">Queries Affected</p>
@@ -103,7 +107,7 @@ export default async function AlertsPage({
                   </div>
                   <div className="ac-header-right">
                     <span className="ac-since">
-                      {firstAlertDate ? `Since ${firstAlertDate}` : "Active"}
+                      {firstAlertMoment ?? "Active"}
                     </span>
                     <span className="ac-status-dot" />
                   </div>

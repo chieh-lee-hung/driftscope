@@ -10,13 +10,14 @@ export function DriftTimeline({ history }: { history: HistoryPoint[] }) {
     return <div style={{ color: "var(--text-3)", fontSize: "0.85rem", padding: "20px 0", textAlign: "center" }}>No history data.</div>;
   }
 
-  const W = 500, H = 200;
+  const W = 520, H = 210;
   const PL = 36, PR = 16, PT = 14, PB = 32;
   const pw = W - PL - PR;
   const ph = H - PT - PB;
 
   const toX = (i: number) => PL + (i / Math.max(1, history.length - 1)) * pw;
   const toY = (v: number) => PT + (1 - Math.min(v, 1)) * ph;
+  const labelFor = (point: HistoryPoint) => point.label ?? point.date;
 
   const areaPath =
     history.map((p, i) => `${i === 0 ? "M" : "L"}${toX(i)},${toY(p.trajectory_drift)}`).join(" ") +
@@ -44,7 +45,7 @@ export function DriftTimeline({ history }: { history: HistoryPoint[] }) {
         viewBox={`0 0 ${W} ${H}`}
         className="timeline-chart"
         role="img"
-        aria-label="Drift history chart"
+        aria-label="Live run timeline chart"
       >
         {/* Grid lines + Y labels */}
         {yTicks.map((v) => (
@@ -81,7 +82,7 @@ export function DriftTimeline({ history }: { history: HistoryPoint[] }) {
 
         {/* Data points + hit areas */}
         {history.map((p, i) => (
-          <g key={p.date}>
+          <g key={`${p.date}-${i}`}>
             {/* invisible hit target */}
             <circle
               cx={toX(i)} cy={toY(p.trajectory_drift)} r="10"
@@ -95,7 +96,7 @@ export function DriftTimeline({ history }: { history: HistoryPoint[] }) {
             <circle cx={toX(i)} cy={toY(p.trajectory_drift)} r="3.5" className="traj-dot" style={{ pointerEvents: "none" }} />
             <circle cx={toX(i)} cy={toY(p.output_drift)}     r="3"   className="out-dot"  style={{ pointerEvents: "none" }} />
             {/* X label */}
-            <text x={toX(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="var(--text-3)" fontFamily="var(--font-sans)">{p.date.slice(5)}</text>
+            <text x={toX(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="var(--text-3)" fontFamily="var(--font-sans)">{labelFor(p)}</text>
           </g>
         ))}
 
@@ -104,16 +105,21 @@ export function DriftTimeline({ history }: { history: HistoryPoint[] }) {
           <g style={{ pointerEvents: "none" }}>
             <rect
               x={tooltipX(hovered)} y={toY(hp.trajectory_drift) - 46}
-              width={96} height={44}
+              width={128} height={48}
               rx={5} fill="var(--panel)"
               stroke="var(--border)" strokeWidth="1"
               style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))" }}
             />
-            <text x={tooltipX(hovered) + 8} y={toY(hp.trajectory_drift) - 31} fontSize="9" fontWeight="600" fill="var(--text-3)" fontFamily="var(--font-sans)">{hp.date}</text>
+            <text x={tooltipX(hovered) + 8} y={toY(hp.trajectory_drift) - 33} fontSize="9" fontWeight="600" fill="var(--text-3)" fontFamily="var(--font-sans)">{labelFor(hp)}</text>
             <circle cx={tooltipX(hovered) + 8} cy={toY(hp.trajectory_drift) - 19} r="3.5" fill="var(--orange)" />
             <text x={tooltipX(hovered) + 15} y={toY(hp.trajectory_drift) - 16} fontSize="9" fill="var(--text)" fontFamily="var(--font-mono)">Traj: {hp.trajectory_drift.toFixed(3)}</text>
             <circle cx={tooltipX(hovered) + 8} cy={toY(hp.trajectory_drift) - 7} r="3" fill="var(--green)" />
             <text x={tooltipX(hovered) + 15} y={toY(hp.trajectory_drift) - 4} fontSize="9" fill="var(--text)" fontFamily="var(--font-mono)">Out:  {hp.output_drift.toFixed(3)}</text>
+            {hp.detail ? (
+              <text x={tooltipX(hovered) + 8} y={toY(hp.trajectory_drift) + 6} fontSize="8.5" fill="var(--text-3)" fontFamily="var(--font-sans)">
+                {hp.detail.length > 26 ? `${hp.detail.slice(0, 26)}…` : hp.detail}
+              </text>
+            ) : null}
           </g>
         )}
       </svg>
