@@ -1,0 +1,510 @@
+{
+  "baseline": [
+    {
+      "id": 1,
+      "project": "openclaw-picnic-live",
+      "query": "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?"
+          },
+          "result_summary": "Refund policy v1\n\n- Damaged grocery items reported within 24 hours are eligible for refund.\n- Picnic support may approve the refund directly after checking the order.\n- Additional seller-type or photo",
+          "timestamp": 1774720721.210926
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3101"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3101\", \"amount\": 8.4, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720721.210979
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3101"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3101\", \"status\": \"approved\", \"refund_amount\": 8.4, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720721.210996
+        }
+      ],
+      "output": "Refund approved for ORD-3101. We will return EUR 8.40 to your original payment method within 3-5 business days.",
+      "duration": 2.048372983932495,
+      "timestamp": 1774720719.162685
+    },
+    {
+      "id": 2,
+      "project": "openclaw-picnic-live",
+      "query": "The yoghurt in ORD-3102 was spoiled when it got here. Please help.",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "The yoghurt in ORD-3102 was spoiled when it got here. Please help."
+          },
+          "result_summary": "Refund policy v1\n\n- Damaged grocery items reported within 24 hours are eligible for refund.\n- Picnic support may approve the refund directly after checking the order.\n- Additional seller-type or photo",
+          "timestamp": 1774720722.518023
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3102"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3102\", \"amount\": 11.2, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720722.518074
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3102"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3102\", \"status\": \"approved\", \"refund_amount\": 11.2, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720722.518083
+        }
+      ],
+      "output": "Refund approved for ORD-3102. We will return EUR 11.20 to your original payment method within 3-5 business days.",
+      "duration": 1.2834112644195557,
+      "timestamp": 1774720721.234748
+    },
+    {
+      "id": 3,
+      "project": "openclaw-picnic-live",
+      "query": "My vegetables from order ORD-3103 were crushed in transit. Refund request.",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "My vegetables from order ORD-3103 were crushed in transit. Refund request."
+          },
+          "result_summary": "Refund policy v1\n\n- Damaged grocery items reported within 24 hours are eligible for refund.\n- Picnic support may approve the refund directly after checking the order.\n- Additional seller-type or photo",
+          "timestamp": 1774720724.177381
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3103"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3103\", \"amount\": 16.8, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720724.177691
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3103"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3103\", \"status\": \"approved\", \"refund_amount\": 16.8, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720724.177716
+        }
+      ],
+      "output": "Refund approved for ORD-3103. We will return EUR 16.80 to your original payment method within 3-5 business days.",
+      "duration": 1.6359412670135498,
+      "timestamp": 1774720722.541823
+    },
+    {
+      "id": 4,
+      "project": "openclaw-picnic-live",
+      "query": "Order ORD-3104 had leaking chicken packaging. What happens next?",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "Order ORD-3104 had leaking chicken packaging. What happens next?"
+          },
+          "result_summary": "Refund policy v1\n\n- Damaged grocery items reported within 24 hours are eligible for refund.\n- Picnic support may approve the refund directly after checking the order.\n- Additional seller-type or photo",
+          "timestamp": 1774720725.895325
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3104"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3104\", \"amount\": 19.5, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720725.8953621
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3104"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3104\", \"status\": \"approved\", \"refund_amount\": 19.5, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720725.895372
+        }
+      ],
+      "output": "Refund approved for ORD-3104. We will return EUR 19.50 to your original payment method within 3-5 business days.",
+      "duration": 1.6890368461608887,
+      "timestamp": 1774720724.206361
+    },
+    {
+      "id": 5,
+      "project": "openclaw-picnic-live",
+      "query": "The milk in ORD-3105 smells off even though it expires next week.",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "The milk in ORD-3105 smells off even though it expires next week."
+          },
+          "result_summary": "Refund policy v1\n\n- Damaged grocery items reported within 24 hours are eligible for refund.\n- Picnic support may approve the refund directly after checking the order.\n- Additional seller-type or photo",
+          "timestamp": 1774720726.609015
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3105"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3105\", \"amount\": 7.9, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720726.6092951
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3105"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3105\", \"status\": \"approved\", \"refund_amount\": 7.9, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720726.609309
+        }
+      ],
+      "output": "Refund approved for ORD-3105. We will return EUR 7.90 to your original payment method within 3-5 business days.",
+      "duration": 0.6887779235839844,
+      "timestamp": 1774720725.920574
+    },
+    {
+      "id": 6,
+      "project": "openclaw-picnic-live",
+      "query": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic refund this?",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic refund this?"
+          },
+          "result_summary": "Refund policy v1\n\n- Damaged grocery items reported within 24 hours are eligible for refund.\n- Picnic support may approve the refund directly after checking the order.\n- Additional seller-type or photo",
+          "timestamp": 1774720727.327866
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3106"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3106\", \"amount\": 14.6, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720727.327903
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3106"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3106\", \"status\": \"approved\", \"refund_amount\": 14.6, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720727.327914
+        }
+      ],
+      "output": "Refund approved for ORD-3106. We will return EUR 14.60 to your original payment method within 3-5 business days.",
+      "duration": 0.6903512477874756,
+      "timestamp": 1774720726.6375968
+    }
+  ],
+  "current": [
+    {
+      "id": 1,
+      "project": "openclaw-picnic-live",
+      "query": "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?"
+          },
+          "result_summary": "Refund policy v2\n\n- Damaged grocery items reported within 24 hours are still eligible for refund.\n- Support must verify whether the item was sold by Picnic directly.\n- Support must confirm usable phot",
+          "timestamp": 1774720729.225745
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3101"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3101\", \"amount\": 8.4, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720729.225795
+        },
+        {
+          "tool": "check_seller_type",
+          "args": {
+            "arg_0": "ORD-3101"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3101\", \"seller_type\": \"picnic_direct\", \"handled_by_picnic\": true}",
+          "timestamp": 1774720729.225814
+        },
+        {
+          "tool": "verify_photo_evidence",
+          "args": {
+            "arg_0": "ORD-3101"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3101\", \"photo_status\": \"usable\", \"verification\": \"passed\"}",
+          "timestamp": 1774720729.225821
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3101"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3101\", \"status\": \"approved\", \"refund_amount\": 8.4, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720729.225832
+        }
+      ],
+      "output": "Refund approved for ORD-3101. We will return EUR 8.40 to your original payment method within 3-5 business days.",
+      "duration": 1.2636082172393799,
+      "timestamp": 1774720727.9622579
+    },
+    {
+      "id": 2,
+      "project": "openclaw-picnic-live",
+      "query": "The yoghurt in ORD-3102 was spoiled when it got here. Please help.",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "The yoghurt in ORD-3102 was spoiled when it got here. Please help."
+          },
+          "result_summary": "Refund policy v2\n\n- Damaged grocery items reported within 24 hours are still eligible for refund.\n- Support must verify whether the item was sold by Picnic directly.\n- Support must confirm usable phot",
+          "timestamp": 1774720730.490763
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3102"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3102\", \"amount\": 11.2, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720730.490808
+        },
+        {
+          "tool": "check_seller_type",
+          "args": {
+            "arg_0": "ORD-3102"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3102\", \"seller_type\": \"picnic_direct\", \"handled_by_picnic\": true}",
+          "timestamp": 1774720730.4908218
+        },
+        {
+          "tool": "verify_photo_evidence",
+          "args": {
+            "arg_0": "ORD-3102"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3102\", \"photo_status\": \"usable\", \"verification\": \"passed\"}",
+          "timestamp": 1774720730.4908311
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3102"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3102\", \"status\": \"approved\", \"refund_amount\": 11.2, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720730.49084
+        }
+      ],
+      "output": "Refund approved for ORD-3102. We will return EUR 11.20 to your original payment method within 3-5 business days.",
+      "duration": 1.2394230365753174,
+      "timestamp": 1774720729.251437
+    },
+    {
+      "id": 3,
+      "project": "openclaw-picnic-live",
+      "query": "My vegetables from order ORD-3103 were crushed in transit. Refund request.",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "My vegetables from order ORD-3103 were crushed in transit. Refund request."
+          },
+          "result_summary": "Refund policy v2\n\n- Damaged grocery items reported within 24 hours are still eligible for refund.\n- Support must verify whether the item was sold by Picnic directly.\n- Support must confirm usable phot",
+          "timestamp": 1774720731.6901581
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3103"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3103\", \"amount\": 16.8, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720731.6902
+        },
+        {
+          "tool": "check_seller_type",
+          "args": {
+            "arg_0": "ORD-3103"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3103\", \"seller_type\": \"picnic_direct\", \"handled_by_picnic\": true}",
+          "timestamp": 1774720731.690212
+        },
+        {
+          "tool": "verify_photo_evidence",
+          "args": {
+            "arg_0": "ORD-3103"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3103\", \"photo_status\": \"usable\", \"verification\": \"passed\"}",
+          "timestamp": 1774720731.69022
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3103"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3103\", \"status\": \"approved\", \"refund_amount\": 16.8, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720731.6902301
+        }
+      ],
+      "output": "Refund approved for ORD-3103. We will return EUR 16.80 to your original payment method within 3-5 business days.",
+      "duration": 1.1699590682983398,
+      "timestamp": 1774720730.520289
+    },
+    {
+      "id": 4,
+      "project": "openclaw-picnic-live",
+      "query": "Order ORD-3104 had leaking chicken packaging. What happens next?",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "Order ORD-3104 had leaking chicken packaging. What happens next?"
+          },
+          "result_summary": "Refund policy v2\n\n- Damaged grocery items reported within 24 hours are still eligible for refund.\n- Support must verify whether the item was sold by Picnic directly.\n- Support must confirm usable phot",
+          "timestamp": 1774720732.8968709
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3104"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3104\", \"amount\": 19.5, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720732.896914
+        },
+        {
+          "tool": "check_seller_type",
+          "args": {
+            "arg_0": "ORD-3104"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3104\", \"seller_type\": \"picnic_direct\", \"handled_by_picnic\": true}",
+          "timestamp": 1774720732.896926
+        },
+        {
+          "tool": "verify_photo_evidence",
+          "args": {
+            "arg_0": "ORD-3104"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3104\", \"photo_status\": \"usable\", \"verification\": \"passed\"}",
+          "timestamp": 1774720732.896937
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3104"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3104\", \"status\": \"approved\", \"refund_amount\": 19.5, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720732.896949
+        }
+      ],
+      "output": "Refund approved for ORD-3104. We will return EUR 19.50 to your original payment method within 3-5 business days.",
+      "duration": 1.178393840789795,
+      "timestamp": 1774720731.7185762
+    },
+    {
+      "id": 5,
+      "project": "openclaw-picnic-live",
+      "query": "The milk in ORD-3105 smells off even though it expires next week.",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "The milk in ORD-3105 smells off even though it expires next week."
+          },
+          "result_summary": "Refund policy v2\n\n- Damaged grocery items reported within 24 hours are still eligible for refund.\n- Support must verify whether the item was sold by Picnic directly.\n- Support must confirm usable phot",
+          "timestamp": 1774720734.100485
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3105"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3105\", \"amount\": 7.9, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720734.100534
+        },
+        {
+          "tool": "check_seller_type",
+          "args": {
+            "arg_0": "ORD-3105"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3105\", \"seller_type\": \"picnic_direct\", \"handled_by_picnic\": true}",
+          "timestamp": 1774720734.100553
+        },
+        {
+          "tool": "verify_photo_evidence",
+          "args": {
+            "arg_0": "ORD-3105"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3105\", \"photo_status\": \"usable\", \"verification\": \"passed\"}",
+          "timestamp": 1774720734.100568
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3105"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3105\", \"status\": \"approved\", \"refund_amount\": 7.9, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720734.100584
+        }
+      ],
+      "output": "Refund approved for ORD-3105. We will return EUR 7.90 to your original payment method within 3-5 business days.",
+      "duration": 1.174466848373413,
+      "timestamp": 1774720732.9261382
+    },
+    {
+      "id": 6,
+      "project": "openclaw-picnic-live",
+      "query": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic refund this?",
+      "steps": [
+        {
+          "tool": "search_policy",
+          "args": {
+            "arg_0": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic refund this?"
+          },
+          "result_summary": "Refund policy v2\n\n- Damaged grocery items reported within 24 hours are still eligible for refund.\n- Support must verify whether the item was sold by Picnic directly.\n- Support must confirm usable phot",
+          "timestamp": 1774720735.3627021
+        },
+        {
+          "tool": "check_order",
+          "args": {
+            "arg_0": "ORD-3106"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3106\", \"amount\": 14.6, \"status\": \"delivered\", \"eligible\": true}",
+          "timestamp": 1774720735.362738
+        },
+        {
+          "tool": "check_seller_type",
+          "args": {
+            "arg_0": "ORD-3106"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3106\", \"seller_type\": \"picnic_direct\", \"handled_by_picnic\": true}",
+          "timestamp": 1774720735.3627489
+        },
+        {
+          "tool": "verify_photo_evidence",
+          "args": {
+            "arg_0": "ORD-3106"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3106\", \"photo_status\": \"usable\", \"verification\": \"passed\"}",
+          "timestamp": 1774720735.3627572
+        },
+        {
+          "tool": "process_refund",
+          "args": {
+            "arg_0": "ORD-3106"
+          },
+          "result_summary": "{\"order_id\": \"ORD-3106\", \"status\": \"approved\", \"refund_amount\": 14.6, \"eta\": \"3-5 business days\"}",
+          "timestamp": 1774720735.3627672
+        }
+      ],
+      "output": "Refund approved for ORD-3106. We will return EUR 14.60 to your original payment method within 3-5 business days.",
+      "duration": 1.2293331623077393,
+      "timestamp": 1774720734.133452
+    }
+  ]
+}

@@ -1,0 +1,614 @@
+{
+  "status": "ok",
+  "overall_drift_score": 0.3333333333333334,
+  "output_drift": 0.0,
+  "trajectory_drift": 0.3333333333333334,
+  "drift_type": "hidden",
+  "behavior_drift_ratio": 1.0,
+  "input_drift_ratio": 0.0,
+  "same_path_ratio": 0.0,
+  "average_path_delta": 0.3333333333333334,
+  "behavior_drift_examples": [
+    {
+      "query": "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?",
+      "baseline_query": "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?",
+      "query_similarity": 0.9999995231628418,
+      "path_similarity": 0.6666666666666666,
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_steps": 3,
+      "current_steps": 5
+    },
+    {
+      "query": "The yoghurt in ORD-3102 was spoiled when it got here. Please help.",
+      "baseline_query": "The yoghurt in ORD-3102 was spoiled when it got here. Please help.",
+      "query_similarity": 0.9999998807907104,
+      "path_similarity": 0.6666666666666666,
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_steps": 3,
+      "current_steps": 5
+    },
+    {
+      "query": "My vegetables from order ORD-3103 were crushed in transit. Refund request.",
+      "baseline_query": "My vegetables from order ORD-3103 were crushed in transit. Refund request.",
+      "query_similarity": 1.0000001192092896,
+      "path_similarity": 0.6666666666666666,
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_steps": 3,
+      "current_steps": 5
+    },
+    {
+      "query": "Order ORD-3104 had leaking chicken packaging. What happens next?",
+      "baseline_query": "Order ORD-3104 had leaking chicken packaging. What happens next?",
+      "query_similarity": 1.0,
+      "path_similarity": 0.6666666666666666,
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_steps": 3,
+      "current_steps": 5
+    },
+    {
+      "query": "The milk in ORD-3105 smells off even though it expires next week.",
+      "baseline_query": "The milk in ORD-3105 smells off even though it expires next week.",
+      "query_similarity": 0.9999998807907104,
+      "path_similarity": 0.6666666666666666,
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_steps": 3,
+      "current_steps": 5
+    },
+    {
+      "query": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic refund this?",
+      "baseline_query": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic refund this?",
+      "query_similarity": 0.9999997019767761,
+      "path_similarity": 0.6666666666666666,
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_steps": 3,
+      "current_steps": 5
+    }
+  ],
+  "input_drift_examples": [],
+  "matched_examples": [],
+  "baseline_count": 6,
+  "current_count": 6,
+  "baseline_start": 1774720719.162685,
+  "baseline_end": 1774720726.6375968,
+  "current_start": 1774720727.9622579,
+  "current_end": 1774720734.133452,
+  "baseline_response_consistency": 1.0,
+  "current_response_consistency": 1.0,
+  "response_consistency_delta": 0.0,
+  "response_consistency_details": {
+    "baseline": {
+      "score": 1.0,
+      "pair_count": 0,
+      "mean_similarity": 1.0,
+      "similarity_std": 0.0
+    },
+    "current": {
+      "score": 1.0,
+      "pair_count": 0,
+      "mean_similarity": 1.0,
+      "similarity_std": 0.0
+    }
+  },
+  "tool_frequency_drift": 0.236452797660028,
+  "tool_frequency_changes": [
+    {
+      "tool": "check_seller_type",
+      "baseline_share": 0.0,
+      "current_share": 0.2,
+      "share_delta": 0.2,
+      "baseline_count": 0,
+      "current_count": 6
+    },
+    {
+      "tool": "verify_photo_evidence",
+      "baseline_share": 0.0,
+      "current_share": 0.2,
+      "share_delta": 0.2,
+      "baseline_count": 0,
+      "current_count": 6
+    },
+    {
+      "tool": "check_order",
+      "baseline_share": 0.3333333333333333,
+      "current_share": 0.2,
+      "share_delta": -0.1333333333333333,
+      "baseline_count": 6,
+      "current_count": 6
+    },
+    {
+      "tool": "process_refund",
+      "baseline_share": 0.3333333333333333,
+      "current_share": 0.2,
+      "share_delta": -0.1333333333333333,
+      "baseline_count": 6,
+      "current_count": 6
+    },
+    {
+      "tool": "search_policy",
+      "baseline_share": 0.3333333333333333,
+      "current_share": 0.2,
+      "share_delta": -0.1333333333333333,
+      "baseline_count": 6,
+      "current_count": 6
+    }
+  ],
+  "tool_frequency_distribution": {
+    "baseline": {
+      "search_policy": 0.3333333333333333,
+      "check_order": 0.3333333333333333,
+      "process_refund": 0.3333333333333333
+    },
+    "current": {
+      "search_policy": 0.2,
+      "check_order": 0.2,
+      "check_seller_type": 0.2,
+      "verify_photo_evidence": 0.2,
+      "process_refund": 0.2
+    }
+  },
+  "should_alert": true,
+  "thresholds": {
+    "drift_threshold": 0.3,
+    "alert_threshold": 0.4,
+    "query_similarity_threshold": 0.85,
+    "path_similarity_threshold": 0.8,
+    "min_sample_size": 4,
+    "min_baseline_size": 4
+  },
+  "project": "openclaw-picnic-live",
+  "generated_at": 1774720745.026645,
+  "history": [
+    {
+      "date": "B1",
+      "label": "B1",
+      "phase": "baseline",
+      "detail": "Healthy baseline trace 1/6 captured.",
+      "trajectory_drift": 0.01,
+      "output_drift": 0.01
+    },
+    {
+      "date": "B2",
+      "label": "B2",
+      "phase": "baseline",
+      "detail": "Healthy baseline trace 2/6 captured.",
+      "trajectory_drift": 0.01,
+      "output_drift": 0.01
+    },
+    {
+      "date": "B3",
+      "label": "B3",
+      "phase": "baseline",
+      "detail": "Healthy baseline trace 3/6 captured.",
+      "trajectory_drift": 0.01,
+      "output_drift": 0.01
+    },
+    {
+      "date": "B4",
+      "label": "B4",
+      "phase": "baseline",
+      "detail": "Healthy baseline trace 4/6 captured.",
+      "trajectory_drift": 0.01,
+      "output_drift": 0.01
+    },
+    {
+      "date": "B5",
+      "label": "B5",
+      "phase": "baseline",
+      "detail": "Healthy baseline trace 5/6 captured.",
+      "trajectory_drift": 0.01,
+      "output_drift": 0.01
+    },
+    {
+      "date": "B6",
+      "label": "B6",
+      "phase": "baseline",
+      "detail": "Healthy baseline trace 6/6 captured.",
+      "trajectory_drift": 0.01,
+      "output_drift": 0.01
+    },
+    {
+      "date": "POL",
+      "label": "Policy",
+      "phase": "event",
+      "detail": "Refund policy bundle changed with no deployment.",
+      "trajectory_drift": 0.01,
+      "output_drift": 0.01,
+      "event_label": "Policy Updated"
+    },
+    {
+      "date": "C1",
+      "label": "C1",
+      "phase": "current",
+      "detail": "Current replay trace 1/6 compared against baseline.",
+      "trajectory_drift": 0.333,
+      "output_drift": 0.0
+    },
+    {
+      "date": "C2",
+      "label": "C2",
+      "phase": "current",
+      "detail": "Current replay trace 2/6 compared against baseline.",
+      "trajectory_drift": 0.333,
+      "output_drift": 0.0
+    },
+    {
+      "date": "C3",
+      "label": "C3",
+      "phase": "current",
+      "detail": "Current replay trace 3/6 compared against baseline.",
+      "trajectory_drift": 0.333,
+      "output_drift": 0.0
+    },
+    {
+      "date": "C4",
+      "label": "C4",
+      "phase": "current",
+      "detail": "Current replay trace 4/6 compared against baseline.",
+      "trajectory_drift": 0.333,
+      "output_drift": 0.0
+    },
+    {
+      "date": "C5",
+      "label": "C5",
+      "phase": "current",
+      "detail": "Current replay trace 5/6 compared against baseline.",
+      "trajectory_drift": 0.333,
+      "output_drift": 0.0
+    },
+    {
+      "date": "C6",
+      "label": "C6",
+      "phase": "current",
+      "detail": "Final observer verdict after the full current replay completed.",
+      "trajectory_drift": 0.333,
+      "output_drift": 0.0
+    }
+  ],
+  "runtime_state": "protected",
+  "runtime_action": "Review mode enabled",
+  "runtime_message": "Observer agent detected hidden drift and routed risky refund workflows into human review before the policy change reached more customers.",
+  "recommended_next_step": "Inspect affected traces and require manual approval for the 100% of queries whose internal path changed.",
+  "sample_queries": [
+    {
+      "query": "Order ORD-3101 arrived with damaged strawberries. Can I get a refund?",
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_output": "Refund approved for ORD-3101. We will return EUR 8.40 to your original payment method within 3-5 business days.",
+      "current_output": "Refund approved for ORD-3101. We will return EUR 8.40 to your original payment method within 3-5 business days."
+    },
+    {
+      "query": "The yoghurt in ORD-3102 was spoiled when it got here. Please help.",
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_output": "Refund approved for ORD-3102. We will return EUR 11.20 to your original payment method within 3-5 business days.",
+      "current_output": "Refund approved for ORD-3102. We will return EUR 11.20 to your original payment method within 3-5 business days."
+    },
+    {
+      "query": "My vegetables from order ORD-3103 were crushed in transit. Refund request.",
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_output": "Refund approved for ORD-3103. We will return EUR 16.80 to your original payment method within 3-5 business days.",
+      "current_output": "Refund approved for ORD-3103. We will return EUR 16.80 to your original payment method within 3-5 business days."
+    },
+    {
+      "query": "Order ORD-3104 had leaking chicken packaging. What happens next?",
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_output": "Refund approved for ORD-3104. We will return EUR 19.50 to your original payment method within 3-5 business days.",
+      "current_output": "Refund approved for ORD-3104. We will return EUR 19.50 to your original payment method within 3-5 business days."
+    },
+    {
+      "query": "The milk in ORD-3105 smells off even though it expires next week.",
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_output": "Refund approved for ORD-3105. We will return EUR 7.90 to your original payment method within 3-5 business days.",
+      "current_output": "Refund approved for ORD-3105. We will return EUR 7.90 to your original payment method within 3-5 business days."
+    },
+    {
+      "query": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic refund this?",
+      "baseline_path": [
+        "search_policy",
+        "check_order",
+        "process_refund"
+      ],
+      "current_path": [
+        "search_policy",
+        "check_order",
+        "check_seller_type",
+        "verify_photo_evidence",
+        "process_refund"
+      ],
+      "baseline_output": "Refund approved for ORD-3106. We will return EUR 14.60 to your original payment method within 3-5 business days.",
+      "current_output": "Refund approved for ORD-3106. We will return EUR 14.60 to your original payment method within 3-5 business days."
+    }
+  ],
+  "observer_events": [
+    {
+      "id": "boot-1774720719158",
+      "timestamp": 1774720719.158207,
+      "stage": "boot",
+      "title": "Observer attached to live refund agent",
+      "detail": "DriftScope started monitoring 6 refund requests for openclaw-picnic-live.",
+      "status": "info"
+    },
+    {
+      "id": "baseline_start-1774720719162",
+      "timestamp": 1774720719.162677,
+      "stage": "baseline_start",
+      "title": "Baseline capture started",
+      "detail": "Observer is collecting healthy tool-call trajectories for the refund agent.",
+      "status": "info"
+    },
+    {
+      "id": "collecting_baseline_1-1774720721213",
+      "timestamp": 1774720721.2131999,
+      "stage": "collecting_baseline_1",
+      "title": "Baseline trace stored",
+      "detail": "Order ORD-3101 arrived with damaged strawberries. Can I get a … · 3 tool steps captured.",
+      "status": "info"
+    },
+    {
+      "id": "collecting_baseline_2-1774720722520",
+      "timestamp": 1774720722.520011,
+      "stage": "collecting_baseline_2",
+      "title": "Baseline trace stored",
+      "detail": "The yoghurt in ORD-3102 was spoiled when it got here. Please h… · 3 tool steps captured.",
+      "status": "info"
+    },
+    {
+      "id": "collecting_baseline_3-1774720724180",
+      "timestamp": 1774720724.180637,
+      "stage": "collecting_baseline_3",
+      "title": "Baseline trace stored",
+      "detail": "My vegetables from order ORD-3103 were crushed in transit. Ref… · 3 tool steps captured.",
+      "status": "info"
+    },
+    {
+      "id": "collecting_baseline_4-1774720725897",
+      "timestamp": 1774720725.897465,
+      "stage": "collecting_baseline_4",
+      "title": "Baseline trace stored",
+      "detail": "Order ORD-3104 had leaking chicken packaging. What happens nex… · 3 tool steps captured.",
+      "status": "info"
+    },
+    {
+      "id": "collecting_baseline_5-1774720726613",
+      "timestamp": 1774720726.613373,
+      "stage": "collecting_baseline_5",
+      "title": "Baseline trace stored",
+      "detail": "The milk in ORD-3105 smells off even though it expires next we… · 3 tool steps captured.",
+      "status": "info"
+    },
+    {
+      "id": "collecting_baseline_6-1774720727329",
+      "timestamp": 1774720727.329631,
+      "stage": "collecting_baseline_6",
+      "title": "Baseline trace stored",
+      "detail": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic… · 3 tool steps captured.",
+      "status": "info"
+    },
+    {
+      "id": "baseline_done-1774720727350",
+      "timestamp": 1774720727.350773,
+      "stage": "baseline_done",
+      "title": "Baseline capture completed",
+      "detail": "6 healthy traces are ready for comparison.",
+      "status": "success"
+    },
+    {
+      "id": "policy_update-1774720727359",
+      "timestamp": 1774720727.3590999,
+      "stage": "policy_update",
+      "title": "Policy Updated",
+      "detail": "Operations changed the refund policy bundle without a deployment.",
+      "status": "warning"
+    },
+    {
+      "id": "current_start-1774720727961",
+      "timestamp": 1774720727.961196,
+      "stage": "current_start",
+      "title": "Current capture started",
+      "detail": "Observer is comparing live refund behavior against the healthy baseline.",
+      "status": "info"
+    },
+    {
+      "id": "collecting_current_1-1774720729227",
+      "timestamp": 1774720729.22719,
+      "stage": "collecting_current_1",
+      "title": "Live trace compared",
+      "detail": "Order ORD-3101 arrived with damaged strawberries. Can I get a … · 5 tool steps captured.",
+      "status": "action"
+    },
+    {
+      "id": "collecting_current_2-1774720730494",
+      "timestamp": 1774720730.494551,
+      "stage": "collecting_current_2",
+      "title": "Live trace compared",
+      "detail": "The yoghurt in ORD-3102 was spoiled when it got here. Please h… · 5 tool steps captured.",
+      "status": "action"
+    },
+    {
+      "id": "collecting_current_3-1774720731692",
+      "timestamp": 1774720731.6920269,
+      "stage": "collecting_current_3",
+      "title": "Live trace compared",
+      "detail": "My vegetables from order ORD-3103 were crushed in transit. Ref… · 5 tool steps captured.",
+      "status": "action"
+    },
+    {
+      "id": "collecting_current_4-1774720732898",
+      "timestamp": 1774720732.898935,
+      "stage": "collecting_current_4",
+      "title": "Live trace compared",
+      "detail": "Order ORD-3104 had leaking chicken packaging. What happens nex… · 5 tool steps captured.",
+      "status": "action"
+    },
+    {
+      "id": "collecting_current_5-1774720734103",
+      "timestamp": 1774720734.103201,
+      "stage": "collecting_current_5",
+      "title": "Live trace compared",
+      "detail": "The milk in ORD-3105 smells off even though it expires next we… · 5 tool steps captured.",
+      "status": "action"
+    },
+    {
+      "id": "collecting_current_6-1774720735364",
+      "timestamp": 1774720735.364461,
+      "stage": "collecting_current_6",
+      "title": "Live trace compared",
+      "detail": "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic… · 5 tool steps captured.",
+      "status": "action"
+    },
+    {
+      "id": "analysis_start-1774720735394",
+      "timestamp": 1774720735.3946931,
+      "stage": "analysis_start",
+      "title": "Observer analysing trajectory drift",
+      "detail": "Running MMD and path-level comparison on the live refund workflow.",
+      "status": "info"
+    },
+    {
+      "id": "protected_mode-1774720745034",
+      "timestamp": 1774720745.034009,
+      "stage": "protected_mode",
+      "title": "Review mode enabled",
+      "detail": "Observer switched the refund workflow into protected mode before more customers were affected.",
+      "status": "warning"
+    },
+    {
+      "id": "checklist-1774720745034",
+      "timestamp": 1774720745.0340118,
+      "stage": "checklist",
+      "title": "Remediation checklist generated",
+      "detail": "Inspect affected traces and require manual approval for the 100% of queries whose internal path changed.",
+      "status": "action"
+    },
+    {
+      "id": "email_failed-1774720745253",
+      "timestamp": 1774720745.2533178,
+      "stage": "email_failed",
+      "title": "Owner email failed",
+      "detail": "Automatic delivery failed: HTTP 403. Provider said: error code: 1010 The resend.dev test sender can only send to the email address associated with your Resend account. You can still use the dashboard button to resend the alert.",
+      "status": "warning"
+    }
+  ],
+  "progress_completed": 12,
+  "progress_total": 12,
+  "live_status_label": "Hidden drift detected"
+}

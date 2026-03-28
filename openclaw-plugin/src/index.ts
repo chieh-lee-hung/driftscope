@@ -114,7 +114,7 @@ export default definePluginEntry({
           }
         },
       }),
-      { name: "driftscope-openclaw-demo", optional: true }
+      { name: "driftscope-openclaw-demo" }
     );
   },
 });

@@ -1,0 +1,666 @@
+Company Name
+
+Opening remarks
+2
+RJ
+Partner, Antler
+Ronald Jan Schuurs
+Antler | Partner 
+
+Company Name
+Meet the Organizers
+
+
+
+
+Ideas for Challenges
+You will also find them in the cheat sheet
+
+#1 The Family Dinner Planner
+Families cook many meals a week - breakfasts, lunches, dinners
+Deciding what to make each night is a hard planning problem
+Try new recipes, avoid repetition
+Use what is already at home
+Buy the right quantities without waste
+Make sure kids will eat the meals
+etc.
+Challenge Build an agent that plans a week of dinners for a family, then turns that dinner plan into a Picnic order. 
+
+People have health goals. Translating them to a weekly shop is hard
+Have enough protein
+Consume less sugar
+Have plant-based meals two days a week
+etc.
+Generic "healthy eating" advice is not very helpful
+
+ChallengeBuild an agent that understands a user’s lifestyle goals and turns them into a concrete, personalised Picnic basket
+
+# 2 The Lifestyle Coach
+
+#3 The Automated Weekly Shop
+Most households have a recurring weekly shopping pattern, but it is never exactly the same
+Manually building a basket each time is repetitive and time consuming
+
+ChallengeBuild an agent that handles the routine weekly shop with minimal user input
+
+Or come up with 
+your own idea!
+
+Easily build with Picnic today!
+Pick any agentic tool you like and set it up on your machine.
+Use the variety of Agentic Skills we have prepared for you:
+Search for relevant products
+Find ready recipes with ingredients
+Add them to your basket
+And many more…!
+Build the shopping experience of your dream!
+
+Good Luck!
+We are excited to see what you build!
+
+KiloClaw
+A managed AI agent that runs 24/7 and does stuff
+
+Kilo Code -> 1.5M devs to all knowledge workers
+Kilo Code
+
+Kilo Code
+
+140 cows, one AI agent
+A colleague manages her farm with OpenClaw.
+The workflow:
+
+• She emails the cow health data to OpenClaw
+• The agent reads the data and looks for anomalies
+• It learns what "normal" looks like for her herd
+• When something looks off — she gets an alert
+
+The goal: catch problems early, before they become emergencies.
+
+Last Minute Presentation Prep
+When you’re asked to deliver Google Slides
+
+Trust and isolation
+Your agent has your API keys, email, and shell access. That's a lot of trust to hand over.
+What KiloClaw does:
+• Every user gets their own isolated VM — not a shared container
+• Your secrets are encrypted on disk and in transit
+• No cross-tenant access found in security testing
+
+What you should do:
+• Give the agent its own email and GitHub — don't share yours
+• Only connect it to the channels you're comfortable with
+• Treat it like a junior employee: give it access to what it needs, not everything
+
+Prompt injection has no reliable fix yet. So scope what the agent can reach.
+
+Get started
+Sign up → create instance → start building
+https://kilo.codes/ClawAMS — 7-day free trial, 3 months free for all of you (will upgrade on Monday!)
+
+$35 Kilo Gateway credits to run inference - hit me up!
+
+500+ models supported, or bring your own API keys
+
+Already have a Kilo Code account? Same login. Questions: job@kilocode.ai
+
+
+Agents and Traces
+Orq x Hackaway 2026
+21
+
+Give teams the tools to movefrom idea to productionfaster
+SOLUTION | SPEED
+Designed to accelerate every phase of AI development through a structured setup
+22
+AI Engineer
+Data Scientist
+Domain Expert
+Product Manager
+AI Engineer
+Agent Control Tower
+AI Gateway
+Experiment
+Agents
+Evaluation
+Knowledge Base
+Monitoring
+22
+
+Experimentation
+Prompt Management
+Mass Experiments
+Datasets
+Agents
+Version Control
+Memory
+Tools Management
+Evaluation
+Evaluator Hub
+LLM as a Judge
+Human Annotation
+Knowledge Base
+RAG as a Service
+Data Ingestion
+Web Scraper
+Monitoring
+Traces
+ROI Management
+Compliance
+Enterprise Chat
+AI Studio
+API / SDK
+Agent Runtime
+ManagedInfrastructure
+Routing Engine
+Guardrails
+PII control
+Canary Releases
+AI Gateway
+Unified API
+Model Management
+Budgets
+Retries &Fallbacks
+End user
+Subject Matter Expert
+Engineering
+End-to-end platform with composable building blocks provides team flexibility while remaining in control
+PLATFORM CAPABILITIES
+1/22/2026
+Presentation Deck Template
+23
+Agent Control Tower
+Model Providers
+Cloud Providers
+Self-deployed Models
+MCP
+A2AProtocol
+OpenSource 
+Libraries
+23
+
+OG Blackbox
+Neural Network
+Data
+Prediction
+24
+
+New, Worse Blackbox
+Agents
+Data
+All your code, emails, holidays, research, etc.
+25
+
+What’s going on
+Agents
+Data
+All your code, emails, holidays, research, etc.
+Agent
+Sub
+agents
+Sub
+agents
+Sub
+agents
+Sub
+agents
+Tools
+Filesystem
+Memories
+26
+
+Tracing is key
+Complex Interactions require visibility
+27
+27
+
+Tracing is key
+Complex Interactions require visibility
+28
+28
+
+Tracing is key
+Complex Interactions require visibility
+29
+29
+
+Agents: Orchestrator & Sub-Agents
+1/22/2026
+Presentation Deck Template
+30
+Use with:
+Official MCP
+Python/TS SDK
+Agent Skills
+
+Ask your coding assistant to help you out
+30
+
+Orq OpenClaw Fork with Tracing
+1/22/2026
+Presentation Deck Template
+31
+31
+
+Getting Started
+32
+Register on my.orq.ai
+Free Tier is expanded for today
+Use the code HACKORQ3 for 3 months free
+Make sure to cancel after
+32
+
+
+Vertex AI Agent Builder
+
+
+
+
+
+
+
+Open-source toolkit for building, evaluating, and deploying AI agents
+
+
+Deploy and manage agents in production with managed services
+
+
+Govern agent sprawl; manage risk and compliance
+Build
+Scale
+Govern
+Agent Engine
+ADK
+
+Vertex AI Agent Builder
+
+Build
+Open-source toolkit for building, evaluating, and deploying AI agents
+Agent Development Kit
+Open Source
+Orchestration
+Tool and Model Use
+Eval and Annotation
+Models / Gemini API
+Tools and Data
+Gemini ModelsOptimized for agentic reasoning
+Model AgnosticChoose the model for you needs
+Model GardenHundreds of curated LLMs
+AudioVideo Streaming
+Scale
+Deploy and manage agents in production with managed services
+Agent Engine
+Runtime
+Sessions
+Code Execution
+Evaluation
+Observability
+Memory Bank
+Computer Use
+Example Store
+Govern
+Govern agent sprawl; manage risk and compliance
+Agent Engine
+Identity
+Enterprise Ready
+Agent & Tool Registries
+Security
+A2A
+MCP
+Search Grounding
+RAG
+Data for Agents
+Agent garden
+100s of Connectors
+Ecosystem Tools
+Enterprise Context
+
+Without an agent platform…
+
+Access
+Security & Auth
+Deployment
+UI Integration
+Deployment
+Infrastructure
+
+Observability
+Performance monitoring
+Customization
+Memory & Examples
+Evaluation
+Performance measurement
+Actions
+Code sandbox
+Deployment
+CI/CD & Testing
+
+   37
+Runtime
+Security & Auth
+Gemini Enterprise
+UI Integration
+Runtime
+infrastructure
+Cloud Trace, logging and monitoring
+Performance monitoring  
+Sessions, Memory Bank, Example Store
+Memory & Examples
+Gen AI Evaluation
+Performance measurement
+Code execution
+Code sandbox
+Runtime
+Deployment
+CI/CD & Testing
+With Vertex AI Agent Engine!
+
+
+Agents with protocols
+Model context and Agent-to-agent protocols
+
+
+
+Agent
+
+
+User
+I need data…
+📁 File system
+
+🗃️ Database API
+
+🌐 Web search agent
+
+Your data...
+Universal language and a set of rules that allow different systems (APIs and Agents) to be discovered and communicate
+Now, let's introduce protocols. Think of a protocol as a universal language, a set of rules that everyone agrees on. It's like the difference between every country having its own unique power outlet versus having a universal standard like USB-C.
+With protocols, our agent doesn't need to know the specific, low-level details of how the file system or the database API works. It just needs to know how to speak the protocol.
+This gives us two massive wins:
+Discoverability: The agent can ask, 'What can you do?' and get a structured, understandable answer.
+Interoperability: We can swap out the backend implementation—change the database, use a different search agent—and as long as the new component speaks the same protocol, our agent code doesn't change.
+In this module, we'll focus on two types of protocols: one for when our agent is talking to a tool or a data source—that's MCP. And another for when our agent is talking to another agent—that's A2A.
+
+
+Google Cloud is leading the way in agent building standards 
+A2A
+Agent-to-Agent protocol is the open standard for collaboration between agents
+ADK
+Agent Development Kit is an open framework to build multi-agent solutions
+AP2
+Agents Payment Protocol is the open protocol to handle agentic payments
+Once you move beyond models, you need to ensure that your agents can work across clouds and across organizations. This is why Google Cloud is leading the way in open agent building standards with the agent development kit, agent to agent protocol, and the agents payment protocol – all of which have hundreds of ecosystem partners already.
+
+ADK:
+Define multi-agent applications orchestrating actions across many agents and tools
+
+Intuitive local dev UI for fast iteration; visualize agent topology and trace agent’s actions
+
+Interleave deterministic logic with actions driven by gen AI reasoning for effortless, hybrid agents
+
+Built-in support for long-running sync tools / human-in-the-loop
+
+Gemini is the default, but any generative AI model is supported, including fine-tuned models 
+
+Support to call remote agents and thousands of existing tools  via MCP
+
+Python and Java SDKs
+
+Roadmap is published
+
+A2A:
+Open protocol designed to handle the dynamic and long-running nature of agent collaboration
+Enables agent discovery using Agent Card 
+
+Designed with enterprise-use in mind for a secure and governed experience 
+Built on top of existing, popular standards including HTTP, SSE, JSON-RPC
+
+AP2:
+AP2 is built on a few core principles to create a secure and fair ecosystem for everyone.
+
+1. Openness and Interoperability: This is a non-proprietary, open extension for A2A and MCP. It fosters a competitive environment where anyone can innovate.
+2. User Control and Privacy by Design: The user is always in control. A role-based architecture makes sure that sensitive data is only shared with the user's permission and only where it is needed. 
+3. Verifiable Intent, Not Inferred Action: Transactions are anchored to deterministic, cryptographically-signed proof of intent from all parties involved, directly addressing the risk of agent error.
+4. Clear Transaction Accountability: The protocol creates a non-repudiable, cryptographic audit trail for every transaction, providing the evidence needed to resolve disputes.
+5. Global and Future-Proof: V0.1 supports "pull" payments like cards, but the roadmap includes "push" payments like real-time bank transfers and digital currencies, ensuring it can evolve with how the world pays. AP2 will also support payments where the human is not present, delegating authority for the payment in the future.
+
+
+
+
+
+AgentOps in Google Cloud Platform
+
+Hackathon GCP Environment Registration / Signup
+ 
+settings
+Fill in the  http://tiny.cc/ai-house-hackathon
+If you are a team elect a team leader
+You will receive an email with instructions which includes signup to explore.qwiklabs.com then start Hackathon @ AI House lab/env
+
+Open GCP Console https://console.cloud.google.com/
+Login with the student Credentials 
+Enjoy building agents to the max :).
+Google Cloud
+once that is done I can see the emails in the linked sheet
+I then add all the participants in the sheet to classroom https://explore.qwiklabs.com/ilt/classrooms/19758/focuses/109803
+
+
+Hackathon tracks
+AGENTIC SYSTEMS
+Build multi-agent system using OpenClaw
+
+VOICE & ADAPTIVE INTERFACES
+Build voice-first OpenClaw solutions
+
+PERSONALIZATION AT SCALE
+Build outreach machine using OpenClaw
+01
+02
+03
+
+Hackathon tracks
+Explain how the team will mitigate this challenge, step by step. Be specific and actionable. 
+Explain how the team will mitigate this challenge, step by step. Be specific and actionable. 
+Explain how the team will mitigate this challenge, step by step. Be specific and actionable. 
+01
+02
+02
+TRACK 1: Agentic Systems
+THE CHALLENGE
+Build multi agent system with orchestration and conditional branching
+
+OPEN CLAW
+Use OpenClaw orchestration primitives, use tool call routing, MCP integrations to wire gents that complete tasks end-to-end
+
+SAMPLE IDEAS
+Multi-agent workflow builder 
+Meeting-to-action converter that transcribes meeting notes , extracts action items and auto-creates tasks
+
+Hackathon tracks
+Explain how the team will mitigate this challenge, step by step. Be specific and actionable. 
+Explain how the team will mitigate this challenge, step by step. Be specific and actionable. 
+Explain how the team will mitigate this challenge, step by step. Be specific and actionable. 
+01
+02
+02
+TRACK 2: Voice & adaptive interfaces 
+THE CHALLENGE
+Replace the text box. Create interfaces that adapt to how users speak, think, or make mistakes in real time. Voice-first, error-aware and context-sensitive.
+
+OPEN CLAW
+Use OpenClaw skills and long context support to track user state across a session and shift the interface strategy in real time
+
+SAMPLE IDEAS
+Voice-first support bot 
+Speech tutor
+
+TRACK 3: Personalization at scale 
+THE CHALLENGE
+Generate emails, content, recommendations that feel individually crafted at the scale of thousands. 
+OPEN CLAW
+Use OpenClaw’s structured output and batch processing primitives to synthesise LinkedIn, GitHub, Messaging App signals tailored at scale
+SAMPLE IDEAS
+Cold-outreach personalization 
+Adaptive tutor that reshapes content based on knowledge gaps
+
+01
+Available resources
+Scan QR code to get access to participant bundle 
+Mentor for each track
+02
+Kilo Code + Eleven Labs + Microsoft credits 
+Free screen recording software for your demo from Screenshow.app
+03
+Whatsapp group with access to all participants 
+
+Prizes
+First prize
+6 months KiloClaw access for all team members + $500 Kilo gateway credits in total
+Company Name
+47
+01
+02
+05
+3 months pro tier | 6 months scale tier of Elevenlabs
+1 year of pro tier of Orq AI
+3x $200 rth of VMS of Azin
+6 months KiloClaw access for all team members + $200 Kilo gateway credits in total
+05
+9 month of pro tier of Orq AI
+3x $100 rth of VMS of Azin
+02
+05
+6 months KiloClaw access for all team members + $100 Kilo gateway credits in total
+6 month of pro tier of Orq AI
+3x $50 rth of VMS of Azin
+🥇
+Second prize
+🥈
+Third prize
+🥉
+
+Tim Kleinloog
+Rania Mohamed 
+Anthony Diaz
+Daniel 
+Gebler
+Google , Solution Architect 
+Picnic, CTO
+Deeploy, CTO
+Orq.ai, CTO
+Meet the judges
+Company Name
+Byron
+Voorbach
+Weviate, CTO
+Mert
+Öztekin
+Just Eat Takeaway,com
+ CTO
+
+Judging criteria
+49
+02
+01
+03
+04
+Is the implementation non-trivial? Does the team demonstrate genuine engineering skill throughout, architecture, meaningful use of OpenClaw primitives, and a solution that goes beyond wrapping an API call?
+
+Does the product solve a real problem for a person? Is it a meaningful workflow someone would actually use?
+
+Is this a fresh take? Judges reward projects that approach the topic in a surprising and novel way
+
+Is the demo clear, focused, and compelling? The pre-recorded video should show the product working end-to-end. The live narration should explain the why, not just the what
+
+Technical depth - 30pt
+Impact + usefulness - 25pt
+Creativity + originality - 20pt
+Demo + presentation - 15pt
+05
+How finished is it? A polished, narrowly-scoped project beats a broad, half-working one. Judges appreciate scope awareness, knowing what you cut and why
+
+Completeness - 10pt
+100 total points
+
+Rules
+02
+01
+03
+Pick your track 
+Submit video demo + presentation by 16:30
+03
+Top 3 pitches get the prizes 
+Top 10 teams across tracks get to deliver a 5 min live pitch 
+
+Team formation
+Deadline for changes: 10:30 am 
+Scan the QR code to check your pre-assigned team or the team that you applied with. Within next 15 minutes you can change the team. 
+
+Hacking Block 1
+10:30 - 13:00
+
+Lunch break
+Lunch break
+13:00 - 13:45
+
+Hacking Block 2
+13:45 - 16:30
+
+Submit your projects
+Submission link
+Submission deadline: 16:30
+
+Shortlisted 
+Pitches
+
+Top 10 teams: 5 min pitch shortlist 
+Team name, Pitch name
+Team name, Pitch name
+
+Team name, Pitch name
+
+Team name, Pitch name
+
+Team name, Pitch name
+
+Team name, Pitch name
+
+Team name, Pitch name
+
+Team name, Pitch name
+
+Team name, Pitch name
+
+Team name, Pitch name
+
+
+Judge 
+deliberation
+20min
+
+Winner announcement
+3rd prize
+6 months KiloClaw access for all team members + $100 Kilo gateway credits in total
+6 month of pro tier of Orq AI
+3x $50 rth of VMS of Azin
+
+Winner announcement
+2nd prize 
+6 months KiloClaw access for all team members + $200 Kilo gateway credits in total
+9 month of pro tier of Orq AI
+3x $100 rth of VMS of Azin
+
+Winner announcement
+1st prize 
+6 months KiloClaw access for all team members + $500 Kilo gateway credits in total
+3 months pro tier | 6 months scale tier of Elevenlabs
+1 year of pro tier of Orq AI
+3x $200 rth of VMS of Azin
+
+Closing remarks
+Closing 
+remarks
+
+
+
+Company Name
