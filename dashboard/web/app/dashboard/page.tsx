@@ -2,9 +2,8 @@ import { AutoRefresh } from "@/app/components/auto-refresh";
 import { BehaviorTable } from "@/app/components/behavior-table";
 import { DriftTimeline } from "@/app/components/drift-timeline";
 import { ProjectTabs } from "@/app/components/project-tabs";
-import { SetupSection } from "@/app/components/setup-section";
+import { RecommendedActions } from "@/app/components/recommended-actions";
 import Sidebar from "@/app/components/sidebar";
-import { TimeRangePicker } from "@/app/components/time-range-picker";
 import { DEFAULT_PROJECT_ID, getDemoProject } from "@/lib/demo-projects";
 import { loadDashboardData, loadTrajectoryData, type TrajectoryRecord } from "@/lib/dashboard-data";
 
@@ -116,7 +115,6 @@ export default async function DashboardPage({
             </span>
           </div>
           <div className="main-header-right">
-            <TimeRangePicker project={projectName} />
             <AutoRefresh />
           </div>
         </div>
@@ -202,15 +200,6 @@ export default async function DashboardPage({
             tooltip="Percentage of current queries whose tool-call trajectory diverges significantly from the nearest baseline trace. Baseline → Current query count shown below."
           />
           <StatCard
-            label="New Tools"
-            value={String(newToolCount)}
-            valueClass={newToolCount > 0 ? "val-orange" : undefined}
-            delta={`${toolChanges.length} tracked`}
-            deltaClass="delta-muted"
-            accentClass={newToolCount > 0 ? "accent-orange" : undefined}
-            tooltip="Tools used in current period that were never called in the baseline. A new tool appearing is a strong signal of agent behavior change."
-          />
-          <StatCard
             label="Status"
             value={status.label}
             valueClass={
@@ -229,16 +218,6 @@ export default async function DashboardPage({
             }
             smallValue
             tooltip="4-quadrant classification: Normal · Input Drift (query distribution changed) · Hidden Drift (trajectory changed, output same) · Severe (both changed)."
-          />
-          <StatCard
-            label="Runtime Action"
-            value={analysis.runtime_action}
-            valueClass={runtimeValueClass}
-            delta={analysis.runtime_state}
-            deltaClass={runtimeDeltaClass}
-            accentClass={runtimeAccent}
-            smallValue
-            tooltip="What the observer agent decided to do after classifying the current runtime state."
           />
         </div>
 
@@ -270,11 +249,15 @@ export default async function DashboardPage({
             </div>
           </div>
           <p className="runtime-message">{analysis.runtime_message}</p>
-          <div className="runtime-next-step">
-            <span className="runtime-next-label">Recommended next step</span>
-            <span className="runtime-next-copy">{analysis.recommended_next_step}</span>
-          </div>
         </div>
+
+        {/* ── Recommended Actions (only when drift alert is active) ── */}
+        {analysis.should_alert && (
+          <RecommendedActions
+            project={projectName}
+            runtimeAction={analysis.runtime_action}
+          />
+        )}
 
         {/* ── Chart row ───────────────────────────────────────── */}
         <div className="chart-row">
@@ -303,28 +286,6 @@ export default async function DashboardPage({
             />
           </div>
 
-        </div>
-
-        <div className="section-divider">
-          <span className="section-label">Path Evolution</span>
-        </div>
-
-        {/* ── Sankey: path divergence ──────────────────────────── */}
-        <div className="panel">
-          <div className="panel-header">
-            <p className="panel-super">All Traces Overlaid</p>
-            <p className="panel-title">
-              Agent Path Divergence
-              <span style={{ fontSize: "0.78rem", fontWeight: 400, color: "var(--text-3)", marginLeft: 8 }}>
-                {trajectoryPayload.baseline.length} baseline &nbsp;·&nbsp; {trajectoryPayload.current.length} current
-              </span>
-            </p>
-          </div>
-          <PathSankey
-            baseline={trajectoryPayload.baseline}
-            current={trajectoryPayload.current}
-            driftedQueries={driftedSet}
-          />
         </div>
 
         <div className="section-divider">
@@ -364,15 +325,6 @@ export default async function DashboardPage({
         </div>
 
         </div>{/* end faded wrapper */}
-
-        <div className="section-divider">
-          <span className="section-label">Integration</span>
-        </div>
-
-        {/* ── Setup section ───────────────────────────────────── */}
-        <div className="panel">
-          <SetupSection />
-        </div>
 
       </div>
       </main>

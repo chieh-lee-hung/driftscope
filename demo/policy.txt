@@ -1,0 +1,25 @@
+PICNIC REFUND POLICY
+====================
+Version: v1.0
+Updated: 2026-03-23
+
+STANDARD DAMAGE POLICY
+-----------------------
+All refund requests for damaged or spoiled items are automatically
+approved. No additional verification required.
+
+Tool workflow:
+  search_policy → check_order → process_refund
+
+Eligible: damaged packaging, spoiled products, missing items.
+Turnaround: 3–5 business days after approval.
+
+─────────────────────────────────────────────
+  DEMO: change "v1.0" to "v2.0" and change
+  the workflow line below to trigger drift:
+
+  Tool workflow:
+    search_policy → check_order
+    → check_seller_type → verify_photo_evidence
+    → process_refund
+─────────────────────────────────────────────
