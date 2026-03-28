@@ -45,6 +45,21 @@ export default async function DashboardPage({
   const toolChanges = analysis.tool_frequency_changes ?? [];
   const history    = analysis.history ?? [];
   const historyEvent = history.find((h) => h.event_label);
+  const runtimeAccent =
+    analysis.runtime_state === "protected" ? "accent-orange"
+    : analysis.runtime_state === "escalated" ? "accent-red"
+    : analysis.runtime_state === "watching" ? "accent-blue"
+    : "accent-green";
+  const runtimeValueClass =
+    analysis.runtime_state === "protected" ? "val-orange"
+    : analysis.runtime_state === "escalated" ? "val-red"
+    : analysis.runtime_state === "watching" ? "val-blue"
+    : "val-green";
+  const runtimeDeltaClass =
+    analysis.runtime_state === "protected" ? "delta-orange"
+    : analysis.runtime_state === "escalated" ? "delta-red"
+    : analysis.runtime_state === "watching" ? "delta-blue"
+    : "delta-green";
 
   // Count new tools (baseline_share === 0, current_share > 0)
   const newToolCount = toolChanges.filter(
@@ -108,6 +123,18 @@ export default async function DashboardPage({
 
         <ProjectTabs activeProject={projectName} shouldAlert={analysis.should_alert} />
 
+        {/* System context strip */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0 4px", fontSize: "0.78rem", color: "var(--text-3)", borderBottom: "1px solid var(--border)", marginBottom: 4 }}>
+          <span style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6, padding: "2px 10px", color: "var(--text-2)", fontWeight: 500 }}>
+            🤖 Production Agent: Picnic Support
+          </span>
+          <span style={{ color: "var(--text-3)" }}>monitored by</span>
+          <span style={{ background: "rgba(234,88,12,0.08)", border: "1px solid rgba(234,88,12,0.25)", borderRadius: 6, padding: "2px 10px", color: "var(--orange)", fontWeight: 500 }}>
+            ◎ Observer Agent: DriftScope
+          </span>
+          <span style={{ color: "var(--text-3)", marginLeft: 4 }}>→ conditional branch on drift</span>
+        </div>
+
         {/* Alert Banner */}
         {analysis.should_alert && (
           <div className={`alert-banner alert-banner-${driftType}`}>
@@ -123,6 +150,8 @@ export default async function DashboardPage({
                 {driftType === "hidden"
                   ? "Agent trajectory changed significantly while output remained similar. "
                   : "Agent behavior has changed significantly. "}
+                <strong>{analysis.runtime_action}</strong>
+                {" — "}
                 <strong>{pct(analysis.behavior_drift_ratio)}</strong> of queries affected.
               </span>
               <span className="alert-banner-since">
@@ -201,10 +230,50 @@ export default async function DashboardPage({
             smallValue
             tooltip="4-quadrant classification: Normal · Input Drift (query distribution changed) · Hidden Drift (trajectory changed, output same) · Severe (both changed)."
           />
+          <StatCard
+            label="Runtime Action"
+            value={analysis.runtime_action}
+            valueClass={runtimeValueClass}
+            delta={analysis.runtime_state}
+            deltaClass={runtimeDeltaClass}
+            accentClass={runtimeAccent}
+            smallValue
+            tooltip="What the observer agent decided to do after classifying the current runtime state."
+          />
         </div>
 
         <div className="section-divider">
           <span className="section-label">Analysis</span>
+        </div>
+
+        <div className="panel runtime-panel">
+          <div className="panel-header">
+            <p className="panel-super">Observer Agent</p>
+            <p className="panel-title">Runtime Control Decision</p>
+          </div>
+          <div className="runtime-grid">
+            <div className="runtime-block">
+              <p className="runtime-label">Current state</p>
+              <p className={`runtime-value ${runtimeValueClass}`}>{analysis.runtime_state}</p>
+            </div>
+            <div className="runtime-block">
+              <p className="runtime-label">Action taken</p>
+              <p className="runtime-value">{analysis.runtime_action}</p>
+            </div>
+            <div className="runtime-block">
+              <p className="runtime-label">Trigger</p>
+              <p className="runtime-copy">
+                {historyEvent?.event_label
+                  ? `${historyEvent.event_label} triggered observer evaluation.`
+                  : "Continuous monitoring with no intervention trigger."}
+              </p>
+            </div>
+          </div>
+          <p className="runtime-message">{analysis.runtime_message}</p>
+          <div className="runtime-next-step">
+            <span className="runtime-next-label">Recommended next step</span>
+            <span className="runtime-next-copy">{analysis.recommended_next_step}</span>
+          </div>
         </div>
 
         {/* ── Chart row ───────────────────────────────────────── */}
@@ -332,7 +401,7 @@ function NoDataGuide({ project }: { project: string }) {
           <code className="ndg-step-cmd">
             {demoProject.outcome === "normal"
               ? "Dashboard stays green with low trajectory and output drift"
-              : "Dashboard should surface hidden drift with extra tools and rerouted paths"}
+              : "Observer agent should surface hidden drift and route the workflow into review mode"}
           </code>
         </div>
       </div>
@@ -341,6 +410,9 @@ function NoDataGuide({ project }: { project: string }) {
           Make sure <code>OPENAI_API_KEY</code> is set before running.
         </p>
       )}
+      <p className="ndg-note" style={{ color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" }}>
+        After the run, check the Overview page for the observer decision and the runtime action taken for this agent.
+      </p>
     </div>
   );
 }

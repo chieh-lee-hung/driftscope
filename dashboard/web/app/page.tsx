@@ -22,48 +22,46 @@ export default async function LandingPage() {
           <span className="lp-nav-name">DriftScope</span>
         </div>
         <div className="lp-nav-links">
-          <a href="#scenarios" className="lp-nav-link">Demo Agents</a>
-          <a href="#workflow" className="lp-nav-link">How it works</a>
+          <a href="#scenarios" className="lp-nav-link">Picnic Demo</a>
+          <a href="#architecture" className="lp-nav-link">Architecture</a>
           <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-sm">
-            Open Demo Console →
+            Open Observer →
           </Link>
         </div>
       </nav>
 
       <section className="lp-hero">
-        <div className="lp-hero-badge">Runtime Safety Layer for Agentic Systems</div>
+        <div className="lp-hero-badge">Track 1 · Agentic Systems · OpenClaw Integration</div>
         <h1 className="lp-hero-title">
-          Detect silent agent drift
+          Agents that watch agents.
           <br />
-          <span className="lp-hero-accent">before it reaches customers.</span>
+          <span className="lp-hero-accent">And act when they drift.</span>
         </h1>
         <p className="lp-hero-sub">
-          DriftScope acts as an observer agent for production agents. It watches live tool trajectories, separates
-          hidden behavioral drift from normal input change, and triggers runtime protection when a support agent quietly
-          stops behaving the way you intended.
+          DriftScope is a two-agent system: a Picnic support agent handles customer queries, and an observer agent watches its tool-call trajectory in real time. When the observer detects silent behavioral drift, it triggers conditional branching — gating refunds, escalating to review, or switching to safe mode.
         </p>
         <div className="lp-hero-cta">
-          <a href="#scenarios" className="lp-btn-primary">Choose a demo agent</a>
-          <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-ghost">Open empty agent view</Link>
+          <a href="#scenarios" className="lp-btn-primary">See the Picnic demo →</a>
+          <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-ghost">Open Observer Console</Link>
         </div>
 
         <div className="lp-observer-strip">
           <div className="lp-observer-card">
-            <span className="lp-observer-kicker">1. Observe</span>
-            <h3>Capture live tool paths</h3>
-            <p>Intercept tool calls and build a trajectory for every production query.</p>
+            <span className="lp-observer-kicker">Production Agent</span>
+            <h3>Picnic Support Agent</h3>
+            <p>Handles customer refund queries using Picnic&apos;s policy, order, and verification tools.</p>
           </div>
           <div className="lp-observer-arrow">→</div>
           <div className="lp-observer-card">
-            <span className="lp-observer-kicker">2. Detect</span>
-            <h3>Spot hidden drift</h3>
-            <p>Compare current behavior to baseline and catch silent path changes.</p>
+            <span className="lp-observer-kicker">Observer Agent</span>
+            <h3>DriftScope Monitor</h3>
+            <p>Intercepts every tool call, embeds trajectories, and runs MMD to detect hidden behavioral drift.</p>
           </div>
           <div className="lp-observer-arrow">→</div>
           <div className="lp-observer-card">
-            <span className="lp-observer-kicker">3. Act</span>
-            <h3>Trigger protection</h3>
-            <p>Escalate, gate, or route risky workflows before silent failures spread.</p>
+            <span className="lp-observer-kicker">Conditional Branch</span>
+            <h3>Runtime Decision</h3>
+            <p>Drift low → continue. Drift detected → gate refunds, escalate, or switch to protected mode.</p>
           </div>
         </div>
 
@@ -87,43 +85,10 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section className="lp-problem" id="workflow">
-        <div className="lp-section-inner">
-          <p className="lp-section-super">How It Works</p>
-          <h2 className="lp-section-title">The demo flow mirrors a real runtime control loop</h2>
-          <div className="lp-steps">
-            <div className="lp-step">
-              <div className="lp-step-num">1</div>
-              <div className="lp-step-body">
-                <h3>Start from an empty agent workspace</h3>
-                <p>Each demo agent starts with no traces and no analysis. The UI tells you which script to run so the observer layer can begin recording behavior.</p>
-                <code className="lp-code">/dashboard?project=&lt;agent&gt;</code>
-              </div>
-            </div>
-            <div className="lp-step">
-              <div className="lp-step-num">2</div>
-              <div className="lp-step-body">
-                <h3>Run the production agent twice</h3>
-                <p>The pipeline records baseline and current trajectories, computes drift, and exports runtime evidence for the chosen agent scenario.</p>
-                <code className="lp-code">python3 demo/&lt;agent-demo&gt;.py</code>
-              </div>
-            </div>
-            <div className="lp-step">
-              <div className="lp-step-num">3</div>
-              <div className="lp-step-body">
-                <h3>Inspect evidence and runtime action</h3>
-                <p>Use one surface to show healthy behavior, hidden drift, and the observer decision that gates or escalates risky workflows.</p>
-                <code className="lp-code">observe → detect → branch into safe mode</code>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="lp-demos" id="scenarios">
         <div className="lp-section-inner">
-          <p className="lp-section-super">Demo Agents</p>
-          <h2 className="lp-section-title">Three runtime states, one observer system</h2>
+          <p className="lp-section-super">Picnic Support Agent · Three runtime states</p>
+          <h2 className="lp-section-title">Same agent. Three scenarios. One observer decides.</h2>
           <div className="lp-demo-grid lp-demo-grid-3">
             {DEMO_PROJECTS.map((project) => {
               const status = statusMap[project.id];
@@ -174,8 +139,8 @@ export default async function LandingPage() {
                     </span>
                     <span className="lp-demo-stat">
                       <span className="lp-stat-label">Observer action</span>
-                      <span className="lp-stat-val">
-                        {project.outcome === "normal" ? "Monitor only" : "Review mode"}
+                      <span className={`lp-stat-val ${project.outcome === "hidden" ? "lp-val-warn" : ""}`}>
+                        {project.outcome === "normal" ? "Monitoring only" : "Refunds gated — human review"}
                       </span>
                     </span>
                     <span className="lp-demo-stat">
@@ -212,36 +177,42 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section className="lp-sdk">
+      <section className="lp-sdk" id="architecture">
         <div className="lp-section-inner lp-sdk-inner">
           <div className="lp-sdk-text">
-            <p className="lp-section-super">Why this fits Track 1</p>
-            <h2 className="lp-section-title lp-sdk-title">A production agent plus an observer agent</h2>
+            <p className="lp-section-super">OpenClaw Integration · Multi-Agent Architecture</p>
+            <h2 className="lp-section-title lp-sdk-title">Wire any agent with DriftScope via OpenClaw</h2>
             <p className="lp-sdk-desc">
-              DriftScope is not just a dashboard. It acts like an observer agent layered on top of a production support agent:
-              it captures tool routes, detects hidden drift, and conditionally triggers protection when behavior changes silently.
-              That is the agentic control loop we want to show.
+              Use <code>OpenClawInterceptor</code> to attach the observer to your OpenClaw agent in 3 lines. Every tool call is routed through DriftScope automatically — no changes to agent logic. When drift exceeds the threshold, the observer triggers conditional branching: normal flow, protected mode, or escalation.
             </p>
             <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-primary" style={{ display: "inline-block", marginTop: 20 }}>
-              Start with the guided agent →
+              Open Observer Console →
             </Link>
           </div>
           <div className="lp-sdk-code">
             <div className="lp-code-block">
               <div className="lp-code-bar">
-                <span className="lp-code-filename">driftscope.py</span>
+                <span className="lp-code-filename">openclaw_integration.py</span>
               </div>
               <pre className="lp-code-pre">{`from driftscope import DriftScope
+from driftscope.integrations.openclaw import OpenClawInterceptor
 
-ds = DriftScope(project="my-real-agent")
+# 1. Attach observer to your OpenClaw project
+ds = DriftScope(project="picnic-support")
+oc = OpenClawInterceptor(ds)
 
-@ds.trace
-def run_agent(query: str) -> str:
-    result = agent.run(query)
-    return result
+# 2. Wrap the agent entrypoint
+@oc.trace_agent
+def run_agent(user_message: str) -> str:
+    ...
 
-# inside your tools
-ds.record_tool_call("search_kb", {"query": query}, kb_result)`}</pre>
+# 3. Wrap each tool — trajectories recorded automatically
+@oc.tool("search_policy")
+def search_policy(query: str) -> str:
+    ...
+
+# Observer detects path change → triggers runtime action
+# drift detected → "Refunds gated — human review required"`}</pre>
             </div>
           </div>
         </div>
@@ -254,7 +225,7 @@ ds.record_tool_call("search_kb", {"query": query}, kb_result)`}</pre>
             <span>DriftScope</span>
             <span className="lp-footer-version">v0.6 · hackathon demo</span>
           </div>
-          <p className="lp-footer-copy">Monitor how agents answer and how they got there.</p>
+          <p className="lp-footer-copy">Two agents. One detects. One protects.</p>
         </div>
       </footer>
     </div>

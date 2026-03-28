@@ -90,6 +90,10 @@ export type AnalysisData = {
   }>;
   history: HistoryPoint[];
   sample_queries: SampleQuery[];
+  runtime_state: string;
+  runtime_action: string;
+  runtime_message: string;
+  recommended_next_step: string;
   data_source?: string;
   source_path?: string | null;
   updated_at?: string | null;
@@ -138,6 +142,10 @@ export const defaultAnalysis: AnalysisData = {
   input_drift_examples: [],
   history: [],
   sample_queries: [],
+  runtime_state: "idle",
+  runtime_action: "No runtime action yet",
+  runtime_message: "Run a demo agent to generate trajectories and observer decisions.",
+  recommended_next_step: "Start with the guided agent or one of the OpenAI scenarios.",
   data_source: "default",
   source_path: null,
   updated_at: null

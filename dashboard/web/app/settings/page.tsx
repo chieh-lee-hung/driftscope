@@ -36,13 +36,49 @@ export default async function SettingsPage({
 
         <div className="page-inner">
           <div className="section-divider" style={{ marginTop: 0 }}>
-            <span className="section-label">Integration</span>
+            <span className="section-label">OpenClaw Integration</span>
+          </div>
+
+          <div className="panel" style={{ borderLeft: "3px solid var(--orange)" }}>
+            <div className="panel-header">
+              <p className="panel-super" style={{ color: "var(--orange)" }}>OpenClaw · Native Integration</p>
+              <p className="panel-title">Wire DriftScope into your OpenClaw agent in 3 lines</p>
+            </div>
+            <p style={{ fontSize: "0.9rem", color: "var(--text-2)", marginBottom: 16, lineHeight: 1.6 }}>
+              Use <code style={{ background: "var(--bg)", padding: "1px 6px", borderRadius: 4, fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>OpenClawInterceptor</code> to wrap your agent entrypoint and individual tool functions. DriftScope automatically captures every tool call trajectory and computes behavioral drift — no manual instrumentation needed.
+            </p>
+            <div className="code-block">
+              <pre>
+                <span className="code-keyword">from</span> <span className="code-fn">driftscope</span> <span className="code-keyword">import</span> <span className="code-fn">DriftScope</span>{"\n"}
+                <span className="code-keyword">from</span> <span className="code-fn">driftscope.integrations.openclaw</span> <span className="code-keyword">import</span> <span className="code-fn">OpenClawInterceptor</span>{"\n\n"}
+                <span className="code-comment"># 1. Attach observer to your OpenClaw project</span>{"\n"}
+                <span className="code-fn">ds</span> = <span className="code-fn">DriftScope</span>(<span className="code-str">project=&quot;{projectName}&quot;</span>){"\n"}
+                <span className="code-fn">oc</span> = <span className="code-fn">OpenClawInterceptor</span>(<span className="code-fn">ds</span>){"\n\n"}
+                <span className="code-comment"># 2. Wrap the agent entrypoint — DriftScope traces the full run</span>{"\n"}
+                <span className="code-keyword">@</span><span className="code-fn">oc.trace_agent</span>{"\n"}
+                <span className="code-keyword">def </span><span className="code-fn">run_agent</span>(user_message: str) -{">"} str:{"\n"}
+                {"    "}<span className="code-comment">...</span>{"\n\n"}
+                <span className="code-comment"># 3. Wrap each tool — trajectories are recorded automatically</span>{"\n"}
+                <span className="code-keyword">@</span><span className="code-fn">oc.tool</span>(<span className="code-str">&quot;search_policy&quot;</span>){"\n"}
+                <span className="code-keyword">def </span><span className="code-fn">search_policy</span>(query: str) -{">"} str:{"\n"}
+                {"    "}<span className="code-comment">...</span>{"\n\n"}
+                <span className="code-comment"># Observer auto-detects when the tool-call path changes</span>{"\n"}
+                <span className="code-comment"># → DriftScope raises alert + triggers runtime action</span>
+              </pre>
+            </div>
+            <div style={{ marginTop: 16, padding: "10px 14px", background: "rgba(255,140,0,0.06)", border: "1px solid rgba(255,140,0,0.2)", borderRadius: 8, fontSize: "0.82rem", color: "var(--text-2)", lineHeight: 1.6 }}>
+              <strong style={{ color: "var(--orange)" }}>How it works:</strong> The interceptor hooks into OpenClaw&apos;s tool call routing. Each tool invocation is recorded as a trajectory step. After enough samples, DriftScope runs MMD-based statistical comparison and triggers conditional branching — escalating, gating, or routing — based on drift severity.
+            </div>
+          </div>
+
+          <div className="section-divider">
+            <span className="section-label">SDK Setup</span>
           </div>
 
           <div className="panel">
             <div className="panel-header">
-              <p className="panel-super">SDK Setup</p>
-              <p className="panel-title">Instrument your agent</p>
+              <p className="panel-super">Generic SDK</p>
+              <p className="panel-title">Instrument any Python agent</p>
             </div>
             <p style={{ fontSize: "0.9rem", color: "var(--text-2)", marginBottom: 16, lineHeight: 1.6 }}>
               Wrap any Python agent function with <code style={{ background: "var(--bg)", padding: "1px 6px", borderRadius: 4, fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>@ds.trace</code> to automatically capture tool calls, outputs, and timing. DriftScope stores traces locally in SQLite and computes drift on demand.

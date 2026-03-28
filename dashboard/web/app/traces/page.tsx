@@ -81,6 +81,15 @@ export default async function TracesPage({
             </div>
           </div>
 
+          <div className="runtime-next-step traces-runtime-note">
+            <span className="runtime-next-label">Observer decision</span>
+            <span className="runtime-next-copy">
+              <strong>{analysis.runtime_action}</strong>
+              {" — "}
+              {analysis.recommended_next_step}
+            </span>
+          </div>
+
           {/* Traces table */}
           <div className="section-divider"><span className="section-label">All traces</span></div>
           <div className="panel">

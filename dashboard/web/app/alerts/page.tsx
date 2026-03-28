@@ -49,7 +49,7 @@ export default async function AlertsPage({
 
         <div className="page-inner">
           {/* Summary */}
-          <div className="stats-row" style={{ gridTemplateColumns: "repeat(3, 1fr)", marginTop: 0 }}>
+          <div className="stats-row" style={{ gridTemplateColumns: "repeat(4, 1fr)", marginTop: 0 }}>
             <div className="stat-card accent-orange">
               <p className="stat-label">Active Alerts</p>
               <p className="stat-value val-orange">{analysis.should_alert ? "1" : "0"}</p>
@@ -67,6 +67,13 @@ export default async function AlertsPage({
               </p>
               <span className="stat-delta delta-muted">
                 {analysis.current_count} current traces
+              </span>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Action Taken</p>
+              <p className="stat-value" style={{ fontSize: "1.1rem" }}>{analysis.runtime_action}</p>
+              <span className={`stat-delta ${analysis.should_alert ? "delta-orange" : "delta-green"}`}>
+                {analysis.runtime_state}
               </span>
             </div>
           </div>
@@ -109,6 +116,11 @@ export default async function AlertsPage({
                     : "Agent behavior has deviated significantly from its baseline. Both the execution path and output semantics have changed."}
                 </p>
 
+                <div className="runtime-next-step" style={{ marginBottom: 16 }}>
+                  <span className="runtime-next-label">Observer action</span>
+                  <span className="runtime-next-copy">{analysis.runtime_message}</span>
+                </div>
+
                 {/* Metrics row */}
                 <div className="ac-metrics">
                   <div className="ac-metric">
@@ -130,6 +142,10 @@ export default async function AlertsPage({
                     <span className="ac-metric-val">
                       {(analysis.tool_frequency_changes ?? []).filter((t) => t.baseline_share === 0 && t.current_share > 0).length}
                     </span>
+                  </div>
+                  <div className="ac-metric">
+                    <span className="ac-metric-label">Runtime State</span>
+                    <span className="ac-metric-val">{analysis.runtime_state}</span>
                   </div>
                 </div>
 
@@ -168,6 +184,7 @@ export default async function AlertsPage({
                       <th>Trajectory Drift</th>
                       <th>Output Drift</th>
                       <th>Event</th>
+                      <th>Observer State</th>
                       <th>Status</th>
                     </tr>
                   </thead>
@@ -188,6 +205,7 @@ export default async function AlertsPage({
                             </span>
                           </td>
                           <td>{h.event_label ?? "—"}</td>
+                          <td>{alert ? analysis.runtime_state : "healthy"}</td>
                           <td>
                             <span className={`tt-status-badge ${alert ? "tt-status-drifted" : "tt-status-normal"}`}>
                               {alert ? "Alert" : "Normal"}

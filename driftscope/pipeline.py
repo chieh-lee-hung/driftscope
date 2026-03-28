@@ -222,6 +222,13 @@ class DriftPipeline:
             drift_type=analysis.get("drift_type", "normal"),
             event_label=event_label if kb_update else None,
         )
+        analysis.update(
+            _build_runtime_controls(
+                drift_type=analysis.get("drift_type", "normal"),
+                should_alert=bool(analysis.get("should_alert")),
+                behavior_drift_ratio=float(analysis.get("behavior_drift_ratio", 0.0)),
+            )
+        )
         analysis["sample_queries"] = [
             {
                 "query":           b["query"],
@@ -345,11 +352,77 @@ def _build_history(
     ]
 
 
+def _build_runtime_controls(
+    *,
+    drift_type: str,
+    should_alert: bool,
+    behavior_drift_ratio: float,
+) -> dict[str, str]:
+    affected = f"{behavior_drift_ratio * 100:.0f}%"
+
+    if drift_type == "hidden":
+        return {
+            "runtime_state": "protected",
+            "runtime_action": "Review mode enabled",
+            "runtime_message": (
+                "Observer agent detected hidden drift and routed risky refund workflows "
+                "into human review before the policy change reached more customers."
+            ),
+            "recommended_next_step": (
+                f"Inspect affected traces and require manual approval for the {affected} of queries "
+                "whose internal path changed."
+            ),
+        }
+
+    if drift_type == "severe":
+        return {
+            "runtime_state": "escalated",
+            "runtime_action": "Auto escalation triggered",
+            "runtime_message": (
+                "Observer agent detected severe drift in both behavior and output and escalated "
+                "the workflow for immediate operator intervention."
+            ),
+            "recommended_next_step": (
+                "Pause automated resolution, review the current prompt or policy bundle, and compare "
+                "recent traces before re-enabling autonomous actions."
+            ),
+        }
+
+    if drift_type == "input_drift":
+        return {
+            "runtime_state": "watching",
+            "runtime_action": "Monitoring only",
+            "runtime_message": (
+                "Query mix shifted, but the agent path remained stable, so the observer keeps "
+                "watching without intervening."
+            ),
+            "recommended_next_step": (
+                "Monitor the new query distribution and expand eval coverage if the new query mix "
+                "becomes persistent."
+            ),
+        }
+
+    state = "watching" if should_alert else "healthy"
+    return {
+        "runtime_state": state,
+        "runtime_action": "Monitoring only",
+        "runtime_message": (
+            "Observer agent sees stable tool routing and normal outputs, so the support agent stays "
+            "in standard autonomous mode."
+        ),
+        "recommended_next_step": (
+            "No intervention required. Continue collecting baseline traces and watch for future "
+            "policy or model changes."
+        ),
+    }
+
+
 def _print_summary(analysis: dict[str, Any], dashboard_url: str) -> None:
     traj  = analysis.get("trajectory_drift", 0)
     out   = analysis.get("output_drift", 0)
     dtype = analysis.get("drift_type", "normal")
     ratio = analysis.get("behavior_drift_ratio", 0)
+    action = analysis.get("runtime_action", "Monitoring only")
 
     _p(f"{_GRN}done{_RST}")
     _p()
@@ -368,6 +441,7 @@ def _print_summary(analysis: dict[str, Any], dashboard_url: str) -> None:
     )
     _p(f"  Drift Type       : {_ORG if dtype == 'hidden' else _RED if dtype == 'severe' else _BLD}{dtype.upper()}{_RST}")
     _p(f"  Queries Affected : {_ORG if ratio > 0.2 else _GRN}{ratio * 100:.0f}%{_RST} of current traces")
+    _p(f"  Observer Action  : {_ORG if dtype in {'hidden', 'severe'} else _GRN}{action}{_RST}")
     _p()
 
     if dtype == "hidden":

@@ -22,19 +22,19 @@ QUERIES = [
     "My vegetables from order ORD-3103 were crushed in transit. Refund request.",
     "Order ORD-3104 had leaking chicken packaging. What happens next?",
     "The milk in ORD-3105 smells off even though it expires next week.",
-    "ORD-3106 included broken eggs and damaged tomatoes. Can FreshBox refund this?",
+    "ORD-3106 included broken eggs and damaged tomatoes. Can Picnic refund this?",
 ]
 
 ORDER_DATA = {
-    "ORD-3101": {"amount": 8.40, "seller_type": "freshbox_direct", "photo_ok": True, "delivered_hours_ago": 2},
-    "ORD-3102": {"amount": 11.20, "seller_type": "freshbox_direct", "photo_ok": True, "delivered_hours_ago": 3},
-    "ORD-3103": {"amount": 16.80, "seller_type": "freshbox_direct", "photo_ok": True, "delivered_hours_ago": 4},
-    "ORD-3104": {"amount": 19.50, "seller_type": "freshbox_direct", "photo_ok": True, "delivered_hours_ago": 2},
-    "ORD-3105": {"amount": 7.90, "seller_type": "freshbox_direct", "photo_ok": True, "delivered_hours_ago": 1},
-    "ORD-3106": {"amount": 14.60, "seller_type": "freshbox_direct", "photo_ok": True, "delivered_hours_ago": 5},
+    "ORD-3101": {"amount": 8.40, "seller_type": "picnic_direct", "photo_ok": True, "delivered_hours_ago": 2},
+    "ORD-3102": {"amount": 11.20, "seller_type": "picnic_direct", "photo_ok": True, "delivered_hours_ago": 3},
+    "ORD-3103": {"amount": 16.80, "seller_type": "picnic_direct", "photo_ok": True, "delivered_hours_ago": 4},
+    "ORD-3104": {"amount": 19.50, "seller_type": "picnic_direct", "photo_ok": True, "delivered_hours_ago": 2},
+    "ORD-3105": {"amount": 7.90, "seller_type": "picnic_direct", "photo_ok": True, "delivered_hours_ago": 1},
+    "ORD-3106": {"amount": 14.60, "seller_type": "picnic_direct", "photo_ok": True, "delivered_hours_ago": 5},
 }
 
-BASELINE_PROMPT = """You are FreshBox support.
+BASELINE_PROMPT = """You are Picnic support.
 
 For refund-eligible damaged grocery orders, always follow this exact path:
 1. Call search_policy.
@@ -44,7 +44,7 @@ For refund-eligible damaged grocery orders, always follow this exact path:
 Do not skip tools and do not call any extra tools.
 Assume the order is eligible when the tools confirm it."""
 
-HIDDEN_DRIFT_PROMPT = """You are FreshBox support.
+HIDDEN_DRIFT_PROMPT = """You are Picnic support.
 
 A policy note was silently added by operations.
 For refund-eligible damaged grocery orders, always follow this exact path:
@@ -76,7 +76,7 @@ BASE_TOOLS = [
         "type": "function",
         "function": {
             "name": "check_order",
-            "description": "Fetch order details for the referenced FreshBox order.",
+            "description": "Fetch order details for the referenced Picnic order.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -109,7 +109,7 @@ EXTRA_TOOLS = [
         "type": "function",
         "function": {
             "name": "check_seller_type",
-            "description": "Verify whether the item was sold by FreshBox directly or a marketplace seller.",
+            "description": "Verify whether the item was sold by Picnic directly or a marketplace seller.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -222,7 +222,7 @@ def execute_tool(name: str, args: dict[str, Any]) -> str:
             {
                 "order_id": order_id,
                 "seller_type": order["seller_type"],
-                "handled_by_freshbox": order["seller_type"] == "freshbox_direct",
+                "handled_by_picnic": order["seller_type"] == "picnic_direct",
             }
         )
 
