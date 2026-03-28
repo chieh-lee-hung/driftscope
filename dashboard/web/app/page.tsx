@@ -31,20 +31,40 @@ export default async function LandingPage() {
       </nav>
 
       <section className="lp-hero">
-        <div className="lp-hero-badge">Unsupervised Behavioral Monitoring for AI Agents</div>
+        <div className="lp-hero-badge">Runtime Safety Layer for Agentic Systems</div>
         <h1 className="lp-hero-title">
-          Catch the behavior change
+          Detect silent agent drift
           <br />
-          <span className="lp-hero-accent">before your users do.</span>
+          <span className="lp-hero-accent">before it reaches customers.</span>
         </h1>
         <p className="lp-hero-sub">
-          DriftScope monitors both output drift and trajectory drift so you can spot silent agent behavior changes
-          that latency, cost, and error metrics will miss. Start from an empty agent workspace, run a built-in demo,
-          and show real traces, real analysis, and a believable operator workflow.
+          DriftScope acts as an observer agent for production agents. It watches live tool trajectories, separates
+          hidden behavioral drift from normal input change, and triggers runtime protection when a support agent quietly
+          stops behaving the way you intended.
         </p>
         <div className="lp-hero-cta">
           <a href="#scenarios" className="lp-btn-primary">Choose a demo agent</a>
           <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-ghost">Open empty agent view</Link>
+        </div>
+
+        <div className="lp-observer-strip">
+          <div className="lp-observer-card">
+            <span className="lp-observer-kicker">1. Observe</span>
+            <h3>Capture live tool paths</h3>
+            <p>Intercept tool calls and build a trajectory for every production query.</p>
+          </div>
+          <div className="lp-observer-arrow">→</div>
+          <div className="lp-observer-card">
+            <span className="lp-observer-kicker">2. Detect</span>
+            <h3>Spot hidden drift</h3>
+            <p>Compare current behavior to baseline and catch silent path changes.</p>
+          </div>
+          <div className="lp-observer-arrow">→</div>
+          <div className="lp-observer-card">
+            <span className="lp-observer-kicker">3. Act</span>
+            <h3>Trigger protection</h3>
+            <p>Escalate, gate, or route risky workflows before silent failures spread.</p>
+          </div>
         </div>
 
         <div className="lp-terminal">
@@ -62,6 +82,7 @@ export default async function LandingPage() {
             <div className="lp-tl lp-tl-result">Trajectory Drift : <span className="lp-tl-hl">0.62</span> ↑ above threshold</div>
             <div className="lp-tl lp-tl-result">Output Drift : 0.01 ✓ still normal</div>
             <div className="lp-tl lp-tl-result">Classification : <span className="lp-tl-hl">Hidden Drift</span></div>
+            <div className="lp-tl lp-tl-event">Observer action : route refunds to review mode</div>
           </div>
         </div>
       </section>
@@ -69,30 +90,30 @@ export default async function LandingPage() {
       <section className="lp-problem" id="workflow">
         <div className="lp-section-inner">
           <p className="lp-section-super">How It Works</p>
-          <h2 className="lp-section-title">The demo flow mirrors a real monitoring workflow</h2>
+          <h2 className="lp-section-title">The demo flow mirrors a real runtime control loop</h2>
           <div className="lp-steps">
             <div className="lp-step">
               <div className="lp-step-num">1</div>
               <div className="lp-step-body">
-                <h3>Start from an empty agent</h3>
-                <p>Each built-in agent starts with no traces and no charts. The dashboard tells you exactly which script to run next.</p>
+                <h3>Start from an empty agent workspace</h3>
+                <p>Each demo agent starts with no traces and no analysis. The UI tells you which script to run so the observer layer can begin recording behavior.</p>
                 <code className="lp-code">/dashboard?project=&lt;agent&gt;</code>
               </div>
             </div>
             <div className="lp-step">
               <div className="lp-step-num">2</div>
               <div className="lp-step-body">
-                <h3>Run the agent script in terminal</h3>
-                <p>The backend records baseline and current traces, computes drift analysis, and exports fresh dashboard data for the chosen agent.</p>
+                <h3>Run the production agent twice</h3>
+                <p>The pipeline records baseline and current trajectories, computes drift, and exports runtime evidence for the chosen agent scenario.</p>
                 <code className="lp-code">python3 demo/&lt;agent-demo&gt;.py</code>
               </div>
             </div>
             <div className="lp-step">
               <div className="lp-step-num">3</div>
               <div className="lp-step-body">
-                <h3>Refresh and inspect the evidence</h3>
-                <p>Use one product surface to show healthy behavior, silent hidden drift, and trace-level evidence for what actually changed.</p>
-                <code className="lp-code">stable agent vs drifted agent, same monitoring product</code>
+                <h3>Inspect evidence and runtime action</h3>
+                <p>Use one surface to show healthy behavior, hidden drift, and the observer decision that gates or escalates risky workflows.</p>
+                <code className="lp-code">observe → detect → branch into safe mode</code>
               </div>
             </div>
           </div>
@@ -102,7 +123,7 @@ export default async function LandingPage() {
       <section className="lp-demos" id="scenarios">
         <div className="lp-section-inner">
           <p className="lp-section-super">Demo Agents</p>
-          <h2 className="lp-section-title">Three agents, one product story</h2>
+          <h2 className="lp-section-title">Three runtime states, one observer system</h2>
           <div className="lp-demo-grid lp-demo-grid-3">
             {DEMO_PROJECTS.map((project) => {
               const status = statusMap[project.id];
@@ -142,6 +163,7 @@ export default async function LandingPage() {
                     </span>
                   </div>
                   <h3 className="lp-demo-title">{project.label}</h3>
+                  <p className="lp-demo-tagline">{project.tagline}</p>
                   <p className="lp-demo-desc">{project.description}</p>
                   <div className="lp-demo-stats">
                     <span className="lp-demo-stat">
@@ -151,8 +173,10 @@ export default async function LandingPage() {
                       </span>
                     </span>
                     <span className="lp-demo-stat">
-                      <span className="lp-stat-label">Execution mode</span>
-                      <span className="lp-stat-val">{project.mode === "openai" ? "real API" : "mock pipeline"}</span>
+                      <span className="lp-stat-label">Observer action</span>
+                      <span className="lp-stat-val">
+                        {project.outcome === "normal" ? "Monitor only" : "Review mode"}
+                      </span>
                     </span>
                     <span className="lp-demo-stat">
                       <span className="lp-stat-label">Last update</span>
@@ -191,11 +215,12 @@ export default async function LandingPage() {
       <section className="lp-sdk">
         <div className="lp-section-inner lp-sdk-inner">
           <div className="lp-sdk-text">
-            <p className="lp-section-super">Why this works for a hackathon demo</p>
-            <h2 className="lp-section-title lp-sdk-title">One product, three believable operating states</h2>
+            <p className="lp-section-super">Why this fits Track 1</p>
+            <h2 className="lp-section-title lp-sdk-title">A production agent plus an observer agent</h2>
             <p className="lp-sdk-desc">
-              The guided agent proves the operator workflow. The stable OpenAI agent proves the system stays calm when behavior is healthy.
-              The drifted OpenAI agent proves DriftScope catches the subtle hidden drift that ordinary observability misses.
+              DriftScope is not just a dashboard. It acts like an observer agent layered on top of a production support agent:
+              it captures tool routes, detects hidden drift, and conditionally triggers protection when behavior changes silently.
+              That is the agentic control loop we want to show.
             </p>
             <Link href={DEMO_PROJECTS[0].dashboardPath} className="lp-btn-primary" style={{ display: "inline-block", marginTop: 20 }}>
               Start with the guided agent →
