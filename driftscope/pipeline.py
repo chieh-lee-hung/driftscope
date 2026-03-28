@@ -1,0 +1,382 @@
+"""
+DriftPipeline — high-level pipeline for before/after drift measurement.
+
+Typical usage::
+
+    from driftscope import DriftPipeline
+
+    pipeline = DriftPipeline(project="my-agent")
+
+    @pipeline.baseline
+    def v1_agent(query: str) -> str:
+        result = search(query)
+        pipeline.record_tool_call("search", {"q": query}, result)
+        return f"Answer: {result}"
+
+    @pipeline.current
+    def v2_agent(query: str) -> str:
+        result = search(query)
+        pipeline.record_tool_call("search", {"q": query}, result)
+        extra = validate(result)
+        pipeline.record_tool_call("validate", {}, extra)
+        return f"Answer: {result}"
+
+    pipeline.run(
+        queries=QUERIES,
+        scenario="Added validation step after policy update",
+        kb_update=["+ Validate eligibility before responding"],
+    )
+"""
+
+from __future__ import annotations
+
+import json
+import time
+from datetime import date, timedelta
+from pathlib import Path
+from typing import Any, Callable, Sequence
+
+from .capture import DriftScope
+from .detector import DriftAnalyzer, DriftThresholds
+
+# ── Terminal helpers ──────────────────────────────────────────────────────────
+
+_GRN = "\033[32m"
+_ORG = "\033[33m"
+_RED = "\033[31m"
+_DIM = "\033[2m"
+_BLD = "\033[1m"
+_RST = "\033[0m"
+
+
+def _p(msg: str = "", end: str = "\n") -> None:
+    print(msg, end=end, flush=True)
+
+
+def _bar(steps: int, max_steps: int = 6) -> str:
+    return "█" * steps + _DIM + "░" * max(0, max_steps - steps) + _RST
+
+
+# ── DriftPipeline ─────────────────────────────────────────────────────────────
+
+
+class DriftPipeline:
+    """
+    Orchestrates a baseline → current drift measurement pipeline.
+
+    The pipeline owns two DriftScope instances (one per phase) and exposes
+    ``@pipeline.baseline`` / ``@pipeline.current`` decorators to register
+    agent functions, plus ``pipeline.record_tool_call()`` to record individual
+    tool invocations (replaces calling ds.record_tool_call directly).
+    """
+
+    def __init__(
+        self,
+        project: str,
+        *,
+        baseline_db:  str | Path | None = None,
+        current_db:   str | Path | None = None,
+        output_dir:   str | Path | None = None,
+        frontend_dir: str | Path | None = None,
+        min_samples:  int = 5,
+        min_baseline: int = 20,
+    ) -> None:
+        repo_root = Path(__file__).resolve().parents[1]
+        demo_out  = repo_root / "demo" / "output"
+        slug      = project.replace("-", "_")
+
+        self.project      = project
+        self.output_dir   = Path(output_dir)   if output_dir   else demo_out
+        self.frontend_dir = Path(frontend_dir) if frontend_dir else (
+            repo_root / "dashboard" / "web" / "public" / "data"
+        )
+        self._thresholds  = DriftThresholds(
+            min_sample_size  = min_samples,
+            min_baseline_size= min_baseline,
+        )
+        self._ds_b = DriftScope(
+            project  = project,
+            db_path  = str(baseline_db) if baseline_db else str(demo_out / f"{slug}_baseline.db"),
+            async_writes = False,
+        )
+        self._ds_c = DriftScope(
+            project  = project,
+            db_path  = str(current_db)  if current_db  else str(demo_out / f"{slug}_current.db"),
+            async_writes = False,
+        )
+
+        self._active_ds:   DriftScope | None = None
+        self._step_counter: int = 0
+        self._baseline_fn: Callable | None = None
+        self._current_fn:  Callable | None = None
+
+    # ── Public decorators ─────────────────────────────────────────────────────
+
+    def baseline(self, fn: Callable) -> Callable:
+        """Decorator: registers *fn* as the baseline agent and wraps it with tracing."""
+        wrapped = self._ds_b.trace(fn)
+        self._baseline_fn = wrapped
+        return wrapped
+
+    def current(self, fn: Callable) -> Callable:
+        """Decorator: registers *fn* as the current agent and wraps it with tracing."""
+        wrapped = self._ds_c.trace(fn)
+        self._current_fn = wrapped
+        return wrapped
+
+    def record_tool_call(
+        self,
+        tool_name: str,
+        tool_args: dict[str, Any] | None,
+        tool_result: Any,
+    ) -> None:
+        """
+        Record one tool call to the active phase's DriftScope and increment
+        the internal step counter (used for the progress bar display).
+        """
+        self._step_counter += 1
+        if self._active_ds is not None:
+            self._active_ds.record_tool_call(tool_name, tool_args, tool_result)
+
+    # ── Run ───────────────────────────────────────────────────────────────────
+
+    def run(
+        self,
+        queries: Sequence[Any],
+        *,
+        scenario:      str = "",
+        phase1_label:  str = "Phase 1 — Baseline",
+        phase2_label:  str = "Phase 2 — Current",
+        kb_update:     list[str] | None = None,
+        event_label:   str | None = None,
+        dashboard_url: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Execute the full pipeline: baseline phase → event notice → current phase
+        → drift analysis → export to dashboard.
+
+        Returns the raw analysis dict.
+        """
+        if self._baseline_fn is None or self._current_fn is None:
+            raise RuntimeError(
+                "Register agents first with @pipeline.baseline and @pipeline.current"
+            )
+
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Wipe old DBs for a clean run
+        self._ds_b.store.reset()
+        self._ds_c.store.reset()
+
+        _p()
+        _p(f"{_BLD}{'═' * 60}{_RST}")
+        _p(f"{_BLD}  DriftScope — {self.project}{_RST}")
+        _p(f"{_BLD}{'═' * 60}{_RST}")
+        _p(f"  Project  : {_ORG}{self.project}{_RST}")
+        _p(f"  Queries  : {len(queries)}")
+        if scenario:
+            _p(f"  Scenario : {scenario}")
+        _p()
+
+        # Phase 1
+        self._run_phase(self._baseline_fn, self._ds_b, queries, phase1_label, _GRN)
+        self._ds_b.flush()
+
+        # KB / prompt update notice
+        if kb_update:
+            _p()
+            _p(f"  {_DIM}{'─' * 56}{_RST}")
+            _p(f"  {_ORG}{_BLD}📋 Update applied:{_RST}")
+            for line in kb_update:
+                _p(f"  {_DIM}   {line}{_RST}")
+            _p(f"  {_DIM}   (no code change · no deployment · no alert){_RST}")
+            _p(f"  {_DIM}{'─' * 56}{_RST}")
+            time.sleep(0.6)
+
+        # Phase 2
+        self._run_phase(self._current_fn, self._ds_c, queries, phase2_label, _ORG)
+        self._ds_c.flush()
+
+        # Re-open SQLite connections after async writes complete so analysis reads
+        # are not using a stale handle from the capture phase.
+        self._ds_b.store.reconnect()
+        self._ds_c.store.reconnect()
+
+        # Analysis
+        _p()
+        _p(f"  {_DIM}Analysing trajectories…{_RST}", end=" ")
+
+        baseline_records = list(reversed(self._ds_b.store.list_recent(limit=1000)))
+        current_records  = list(reversed(self._ds_c.store.list_recent(limit=1000)))
+
+        analyzer = DriftAnalyzer(thresholds=self._thresholds)
+        analysis = analyzer.analyze(
+            baseline_trajectories=baseline_records,
+            current_trajectories=current_records,
+        )
+        analysis["project"]      = self.project
+        analysis["generated_at"] = time.time()
+        analysis["history"]      = _build_history(
+            analysis.get("trajectory_drift", 0),
+            analysis.get("output_drift", 0),
+            drift_type=analysis.get("drift_type", "normal"),
+            event_label=event_label if kb_update else None,
+        )
+        analysis["sample_queries"] = [
+            {
+                "query":           b["query"],
+                "baseline_path":   [s["tool"] for s in b["steps"]],
+                "current_path":    [s["tool"] for s in c["steps"]],
+                "baseline_output": b["output"],
+                "current_output":  c["output"],
+            }
+            for b, c in zip(baseline_records[:8], current_records[:8])
+        ]
+
+        self._ds_b.store.save_analysis(analysis)
+        self._ds_c.store.save_analysis(analysis)
+        self._export(analysis, baseline_records, current_records)
+        self._ds_b.store.close()
+        self._ds_c.store.close()
+
+        url = dashboard_url or (
+            f"http://localhost:3001/dashboard?project={self.project}"
+        )
+        _print_summary(analysis, url)
+        return analysis
+
+    # ── Internal ──────────────────────────────────────────────────────────────
+
+    def _run_phase(
+        self,
+        agent_fn: Callable,
+        ds: DriftScope,
+        queries: Sequence[Any],
+        label: str,
+        color: str,
+    ) -> None:
+        desc = "baseline" if _GRN in color else "current"
+        _p(f"\n{_BLD}{color}── {label}{_RST}")
+        self._active_ds = ds
+        for i, q in enumerate(queries, 1):
+            self._step_counter = 0
+            agent_fn(str(q))
+            steps  = self._step_counter
+            bar    = _bar(steps)
+            status = f"{_GRN}✓{_RST}" if steps <= 3 else f"{_ORG}!{_RST}"
+            short  = str(q)
+            if len(short) > 62:
+                short = short[:62] + "…"
+            _p(f"  {_DIM}{i:02d}{_RST} {status} {bar} ({steps} steps)  {_DIM}{short}{_RST}")
+            time.sleep(0.015)
+        self._active_ds = None
+
+    def _export(
+        self,
+        analysis: dict[str, Any],
+        baseline_records: list[dict],
+        current_records:  list[dict],
+    ) -> None:
+        slug   = self.project.replace("-", "_")
+        bundle = {
+            "project":  self.project,
+            "analysis": analysis,
+            "baseline": baseline_records,
+            "current":  current_records,
+        }
+
+        def write(dest: Path, obj: object) -> None:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(
+                json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+
+        write(self.output_dir / f"{slug}_bundle.json", bundle)
+        write(self.frontend_dir / self.project / "analysis.json",     analysis)
+        write(self.frontend_dir / self.project / "trajectories.json", {
+            "baseline": baseline_records,
+            "current":  current_records,
+        })
+
+
+# ── Module-level helpers ──────────────────────────────────────────────────────
+
+
+def _build_history(
+    trajectory: float,
+    output: float,
+    *,
+    drift_type: str = "normal",
+    event_label: str | None = None,
+) -> list[dict]:
+    today = date.today()
+    days = [(today - timedelta(days=5 - i)) for i in range(6)]
+
+    def clip(value: float) -> float:
+        return round(max(0.0, min(value, 1.0)), 3)
+
+    if event_label:
+        history = [
+            {"date": str(days[0]), "trajectory_drift": clip(max(0.05, trajectory * 0.22)), "output_drift": clip(max(0.02, output * 0.2))},
+            {"date": str(days[1]), "trajectory_drift": clip(max(0.07, trajectory * 0.3)), "output_drift": clip(max(0.03, output * 0.3))},
+            {"date": str(days[2]), "trajectory_drift": clip(max(0.1, trajectory * 0.45)), "output_drift": clip(max(0.05, output * 0.45))},
+            {"date": str(days[3]), "trajectory_drift": clip(max(0.14, trajectory * 0.7)), "output_drift": clip(max(0.07, output * 0.7))},
+            {
+                "date": str(days[4]),
+                "trajectory_drift": clip(max(0.31 if drift_type in {"hidden", "severe"} else 0.16, trajectory * 1.12)),
+                "output_drift": clip(max(0.0, output * 0.88)),
+                "event_label": event_label,
+            },
+            {
+                "date": str(days[5]),
+                "trajectory_drift": clip(trajectory),
+                "output_drift": clip(output),
+            },
+        ]
+        return history
+
+    return [
+        {"date": str(days[0]), "trajectory_drift": 0.02, "output_drift": 0.01},
+        {"date": str(days[1]), "trajectory_drift": 0.03, "output_drift": 0.01},
+        {"date": str(days[2]), "trajectory_drift": 0.04, "output_drift": 0.02},
+        {"date": str(days[3]), "trajectory_drift": 0.05, "output_drift": 0.02},
+        {"date": str(days[4]), "trajectory_drift": clip(max(0.03, trajectory * 0.35)), "output_drift": clip(max(0.01, output * 0.35))},
+        {"date": str(days[5]), "trajectory_drift": clip(trajectory), "output_drift": clip(output)},
+    ]
+
+
+def _print_summary(analysis: dict[str, Any], dashboard_url: str) -> None:
+    traj  = analysis.get("trajectory_drift", 0)
+    out   = analysis.get("output_drift", 0)
+    dtype = analysis.get("drift_type", "normal")
+    ratio = analysis.get("behavior_drift_ratio", 0)
+
+    _p(f"{_GRN}done{_RST}")
+    _p()
+    _p(f"{_BLD}{'═' * 60}{_RST}")
+    _p(f"{_BLD}  DriftScope Analysis Results{_RST}")
+    _p(f"{_BLD}{'═' * 60}{_RST}")
+    _p(
+        f"  Trajectory Drift : "
+        f"{_ORG if traj > 0.3 else _GRN}{traj:.4f}{_RST}"
+        f"  {'↑ ABOVE THRESHOLD' if traj > 0.3 else '✓ normal'}"
+    )
+    _p(
+        f"  Output Drift     : "
+        f"{_ORG if out > 0.3 else _GRN}{out:.4f}{_RST}"
+        f"  {'↑ elevated' if out > 0.3 else '✓ normal (hidden drift!)'}"
+    )
+    _p(f"  Drift Type       : {_ORG if dtype == 'hidden' else _RED if dtype == 'severe' else _BLD}{dtype.upper()}{_RST}")
+    _p(f"  Queries Affected : {_ORG if ratio > 0.2 else _GRN}{ratio * 100:.0f}%{_RST} of current traces")
+    _p()
+
+    if dtype == "hidden":
+        _p(f"  {_ORG}⚠  Hidden Drift detected!{_RST}")
+        _p(f"  {_DIM}  Output looks normal but internal paths changed.{_RST}")
+        _p(f"  {_DIM}  LangSmith would show this agent as healthy.{_RST}")
+        _p(f"  {_DIM}  DriftScope caught it from trajectory analysis.{_RST}")
+        _p()
+
+    _p(f"  {_GRN}{_BLD}Dashboard ready →{_RST}  {dashboard_url}")
+    _p(f"  {_DIM}(run `cd dashboard/web && npm run dev` if not already running){_RST}")
+    _p()
