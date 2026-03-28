@@ -1,0 +1,15 @@
+{
+  "name": "driftscope-openclaw-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Native OpenClaw plugin that triggers the DriftScope Picnic refund replay demo.",
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "scripts": {
+    "check": "node -e \"console.log('OpenClaw runtime loads this plugin via jiti.')\""
+  }
+}

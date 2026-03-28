@@ -17,6 +17,7 @@ internal verification runners.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -250,7 +251,40 @@ def _run_openclaw_refund_agent(
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Run the Picnic refund replay that powers the main DriftScope demo."
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["healthy", "policy_changed", "full"],
+        default="policy_changed",
+        help="healthy keeps the workflow stable; policy_changed replays the same workload after a silent policy update. 'full' is kept as an alias for policy_changed.",
+    )
+    args = parser.parse_args()
+    mode = "policy_changed" if args.mode == "full" else args.mode
+
     client = _require_openai_client()
+
+    if mode == "healthy":
+        scenario = (
+            "Picnic refund agent triggered from an OpenClaw tool with a stable policy bundle"
+        )
+        phase1_label = "Phase 1 — Healthy OpenClaw refund workflow"
+        phase2_label = "Phase 2 — Same healthy workflow replay"
+        event_label = None
+        kb_update = None
+    else:
+        scenario = (
+            "Picnic refund agent triggered from an OpenClaw tool, then replayed after a silent refund-policy update"
+        )
+        phase1_label = "Phase 1 — Healthy OpenClaw refund workflow"
+        phase2_label = "Phase 2 — Same workflow after silent policy update"
+        event_label = "Policy Updated"
+        kb_update = [
+            "+ verify seller type before refund",
+            "+ verify photo evidence before approval",
+            "+ keep customer-facing resolution unchanged when still eligible",
+        ]
 
     @pipeline.baseline
     @oc.trace_agent
@@ -268,21 +302,17 @@ def main() -> None:
         return _run_openclaw_refund_agent(
             client=client,
             query=query,
-            policy_text=POLICY_V2,
-            include_extra_tools=True,
+            policy_text=POLICY_V1 if mode == "healthy" else POLICY_V2,
+            include_extra_tools=False if mode == "healthy" else True,
         )
 
     pipeline.run(
         queries=QUERIES,
-        scenario="Picnic refund agent running on an OpenClaw-style workflow with DriftScope as the observer plugin",
-        phase1_label="Phase 1 — Healthy OpenClaw refund workflow",
-        phase2_label="Phase 2 — Same workflow after silent policy update",
-        event_label="Policy Updated",
-        kb_update=[
-            "+ verify seller type before refund",
-            "+ verify photo evidence before approval",
-            "+ keep customer-facing resolution unchanged when still eligible",
-        ],
+        scenario=scenario,
+        phase1_label=phase1_label,
+        phase2_label=phase2_label,
+        event_label=event_label,
+        kb_update=kb_update,
         dashboard_url="http://localhost:3000/dashboard?project=openclaw-picnic-live",
     )
 

@@ -1,0 +1,11 @@
+{
+  "id": "driftscope-openclaw-demo",
+  "name": "DriftScope OpenClaw Demo",
+  "description": "Registers a Picnic refund replay tool that triggers the DriftScope live demo from a real OpenClaw plugin entrypoint.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
